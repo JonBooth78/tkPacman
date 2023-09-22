@@ -360,6 +360,7 @@ oo::class create MainWin {
         pacmanOptions initOptions
         installReturnBindings
         geometry::initGeometry
+        my initFontSize
         set window {.}
         set packlist(mode) sync
         set packlist(list) {}
@@ -1192,9 +1193,37 @@ oo::define MainWin {
                 font configure $font -size [expr $size - $increment]
             }
         }
+        set fontincrement [tkpOptions getOption general fontincrement]
+        incr fontincrement $increment
+        tkpOptions setOption general fontincrement $fontincrement
+        tkpOptions saveOptions
         return
     }
 }
+
+##
+# MainWin initFontSize
+#   This method sets the fontsize as stored in tkpOption general fontincrement
+#
+# arguments:
+#   none
+#
+
+oo::define MainWin {
+    method initFontSize {} {
+        set fontincrement [tkpOptions getOption general fontincrement]
+        foreach font {TkDefaultFont TkTextFont TkFixedFont TkMenuFont TkHeadingFont} {
+            set size [font configure $font -size]
+            if {$size > 0} then {
+                font configure $font -size [expr $size + $fontincrement]
+            } else {
+                font configure $font -size [expr $size - $fontincrement]
+            }
+        }
+        return
+    }
+}
+
 
 oo::define MainWin {
     method setupErrChan {} {

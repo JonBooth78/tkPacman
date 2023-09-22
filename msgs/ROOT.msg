@@ -520,6 +520,17 @@ the most relevant ones.
 
 Default: Not allerrors}
 
+optHelp_fontincrement
+{This option determines the size of the fonts used by tkPacman.
+
+It cannot be changed here, but you can change the font size by using
+the menus Tools -> Bigger fonts and Tools -> Smaller fonts.
+
+You can reset this option here to its default value. However this has no
+effect on the fontsize until tkPacman has been restarted.
+
+Default: 0}
+
 optPasteFilename
 {&Paste filename}
 

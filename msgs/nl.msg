@@ -531,6 +531,19 @@ relevante.
 
 Standaard: Niet alle fouten}
 
+optHelp_fontincrement
+{Deze optie bepaalt de grootte van de karakters die tkPacman gebruikt.
+
+Ze kan hier niet veranderd worden, maar je kunt de grootte van de
+karakters veranderen met de menus Extra -> Grotere karakters en
+Extra -> Kleinere karakters.
+
+Je kunt deze optie hier wel terugzetten op de standaardwaarde, maar
+dat heeft alleen maar effect op de grootte van de karakters nadat
+tkPacman opnieuw is opgestart.
+
+Standaard: 0}
+
 optPasteFilename
 {Bestandsnaam &plakken}
 

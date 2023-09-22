@@ -28,7 +28,7 @@ Bij een "gedeeltelijke opwaardering" worden sommige opwaardeerbare pakketten opg
 
 "Gedeeltelijke opwaarderingen" kunnen ernstige problemen veroorzaken. Zie
 
-https://wiki.archlinux.org/index.php/Pacman#Partial_upgrades_are_unsupported
+https://wiki.archlinux.org/index.php/System_maintenance#Partial_upgrades_are_unsupported
 
 en
 

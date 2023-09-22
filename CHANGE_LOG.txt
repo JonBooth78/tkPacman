@@ -1,3 +1,9 @@
+Version 1.7.0 (2016-09-12)
+  - The option "fontincrement" has been added. It saves the font size
+    used by tkPacman.
+  - Correction in the help text: the hyperlink to "Partial upgrades
+    are unsupported" has been corrected.
+
 Version 1.6.1 (2015-10-13)
   - The button "Check Upgrades" was renamed to "List Upgrades".
   - tkPacman no longer calls the pacman script "checkupdates" but

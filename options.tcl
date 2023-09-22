@@ -118,7 +118,7 @@ namespace eval pacmanOptions {
 
 namespace eval tkpOptions {
     variable optionStructure [list \
-        general [list browser terminal runasroot tmpdir allerrors] \
+        general [list browser terminal runasroot tmpdir allerrors fontincrement] \
         geometry [list main text import] \
         fileselection [list lastdir]]
     variable optionDict
@@ -253,6 +253,9 @@ namespace eval tkpOptions {
                 set value {/tmp}
             }
             "allerrors" {
+                set value 0
+            }
+            "fontincrement" {
                 set value 0
             }
             default {
@@ -390,6 +393,10 @@ namespace eval tkpOptions {
                 set control [ttk::checkbutton ${frm}.con$idx \
                     -variable tkpOptions::optionArray($tab,$option) \
                     -onvalue 1 -offvalue 0]
+            } elseif {$option eq {fontincrement}} then {
+                set control [entry ${frm}.con$idx \
+                    -textvariable tkpOptions::optionArray($tab,$option)]
+                $control configure -state readonly
             } else {
                 set control [entry ${frm}.con$idx \
                     -textvariable tkpOptions::optionArray($tab,$option)]
