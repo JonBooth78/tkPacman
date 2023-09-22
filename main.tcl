@@ -1435,7 +1435,8 @@ oo::define MainWin {
         addMenuItem $mnPacman mnuImport command [list [self object] onImport]
         addMenuItem $mnPacman mnuLog command [list [self object] showLog]
         addMenuItem $mnPacman mnuClean command [list [self object] cleanCache]
-        addMenuItem $mnPacman mnuOptimize command [list [self object] optimizeDB]
+        # addMenuItem $mnPacman mnuOptimize command [list [self object] optimizeDB]
+        # item had to be removed, because pacman no longer supports pacman-optimize
         addMenuItem $mnPacman mnuQuit command [list [self object] onQuit]
         # accelerators for Database menu
         $mnPacman entryconfigure 4 -accelerator {Cntrl-q}

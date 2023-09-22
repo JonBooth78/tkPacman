@@ -143,13 +143,12 @@ namespace eval tkpOptions {
         {xfce4-terminal --disable-server --title=%t --command=%c} \
         {konsole --nofork -p tabtitle=%t -e %c} \
         {mate-terminal --disable-factory --title=%t --command=%c} \
-        {vte --name=%t --command=%c} \
+        {vte-2.91 --name=%t --command=%c} \
         {qterminal --execute %c} \
         {xterm -title %t -e %c}]
     set runasrootList [list \
         {%terminal(echo "%p" ; su --command="%p" ; read -p "%close")} \
         {sudo --askpass %terminal(echo "%p" ; %p ; read -p "%close")} \
-        {gksu --description pacman %terminal(echo "%p" ; %p ; read -p "%close")} \
         {kdesu %terminal(echo "%p" ; %p ; read -p "%close")}]
     namespace ensemble create -subcommands [list getDefault \
         getOption initOptions saveOptions setOption showWindow]

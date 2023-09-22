@@ -30,10 +30,6 @@ A "partial upgrade" is an upgrade by which only some of the upgradable packages 
 
 https://wiki.archlinux.org/index.php/System_maintenance#Partial_upgrades_are_unsupported
 
-and
-
-http://gist.io/5660494
-
 for more details.
 
 You can get a "partial upgrade" if you call 'pacman --sync --refresh' wihtout '--sysupgrade' and then install one or more packages with 'pacman --sync pkg1 pkg2 ...'.

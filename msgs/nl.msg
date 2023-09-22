@@ -344,7 +344,7 @@ Zie Extra -> Opties.}
 about_tkp
 {tkPacman versie %1$s
 
-Copyright © Willem Herremans 2013-2017
+Copyright © Willem Herremans 2013-2018
 
 Dit programma is vrije software; u kunt het herverdelen en/of wijzigen onder de voorwaarden van de GNU General Public License zoals die gepubliceerd wordt door de Free Software Foundation; ofwel versie 2 van de licentie, ofwel (uw keuze) een latere versie.
 
@@ -449,7 +449,7 @@ het oproepen van een terminal programma:
         xfce4-terminal --disable-server --title=%t --command=%c
         konsole --nofork -p tabtitle=%t -e %c
         mate-terminal --disable-factory --title=%t --command=%c
-        vte --name=%t --command=%c
+        vte-2.91 --name=%t --command=%c
         qterminal --execute %c
         xterm -title %t -e %c
 
@@ -495,8 +495,7 @@ Door de drop down box te gebruiken, kunt u kiezen uit de volgende
 
  1. %terminal(echo "%p" ; su --command="%p" ; read -p "%close")
  2. sudo --askpass %terminal(echo "%p" ; %p ; read -p "%close")
- 3. gksu --description pacman %terminal(echo "%p" ; %p ; read -p "%close")
- 4. kdesu %terminal(echo "%p" ; %p ; read -p "%close")
+ 3. kdesu %terminal(echo "%p" ; %p ; read -p "%close")
 
 Keuze 1 is de standaard keuze. Ze vereist dat u het 'root' wachtwoord
 invoert bij elk pacman commando.
@@ -508,15 +507,7 @@ Gedurende deze tijd kunt u een ander pacman commando uitvoeren
 zonder uw wachtwoord te moeten invoeren. Normaal vereist sudo dat u
 uw eigen wachtwoord invoert in plaats van het 'root' wachtwoord.
 
-Keuze 3 vereist het pakket 'gksu'. gksu kan het 'root' wachtwoord
-onthouden gedurende de sessie of zelfs opslaan in de gnome keyring.
-Deze keuze minimaliseert het aantal keren dat u het 'root' wachtwoord
-moet invoeren, maar ze is minder veilig, omdat alle commando's
-als 'root' kunnen uitgevoerd worden gedurende de hele tijd dat u
-aangemeld bent bij uw normale account.
-
-Keuze 4 vereist het pakket 'kdesu'. kdesu is gelijkaardig
-aan gksu, maar behoort tot de KDE desktop.
+Keuze 3 vereist het pakket 'kdesu'. kdesu is goed geïntegreerd in KDE.
 
 Van deze runasroot commando's is geweten dat ze werken. Als u liever
 een ander runasroot commando gebruikt, kunt u het typen in plaats

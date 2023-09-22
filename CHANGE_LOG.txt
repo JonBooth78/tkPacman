@@ -1,3 +1,9 @@
+Version 1.9.0 (2018-07-08)
+  - Possibility to call "pacman-optimize" has been removed because
+    pacman also does not provide it anymore.
+  - "gksu" has been removed from option "runasroot" because "gksu" has
+    been removed from the Arch linux repositories
+  - "vte" has been replaced with "vte-2.91" in option "terminal".
 Version 1.8.0 (2017-10-22)
   - Corrections to the predefined templates for the "terminal" option:
       - roxterm was removed because it currently does not work wel

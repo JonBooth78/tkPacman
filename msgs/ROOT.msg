@@ -339,7 +339,7 @@ Use Tools -> Options.}
 about_tkp
 {tkPacman version %1$s
 
-Copyright © Willem Herremans 2013-2017
+Copyright © Willem Herremans 2013-2018
 
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 
@@ -444,7 +444,7 @@ invocation commands:
         xfce4-terminal --disable-server --title=%t --command=%c
         konsole --nofork -p tabtitle=%t -e %c
         mate-terminal --disable-factory --title=%t --command=%c
-        vte --name=%t --command=%c
+        vte-2.91 --name=%t --command=%c
         qterminal --execute %c
         xterm -title %t -e %c
 
@@ -460,7 +460,7 @@ installed.
 For use in the context of tkPacman, it is important that the terminal
 program does not return control to tkPacman until the command '%c' has
 been completed. Some terminal programs behave well in that respect:
-xterm and vte. Others need to be called with a special option:
+xterm and vte-2.91. Others need to be called with a special option:
 xfce4-terminal --disable-server, mate-terminal --disable-factory,
 konsole --nofork. Still others I could not prevent
 from returning control to tkPacman immediately: gnome-terminal,
@@ -486,8 +486,7 @@ commands:
 
  1. %terminal(echo "%p" ; su --command="%p" ; read -p "%close")
  2. sudo --askpass %terminal(echo "%p" ; %p ; read -p "%close")
- 3. gksu --description pacman %terminal(echo "%p" ; %p ; read -p "%close")
- 4. kdesu %terminal(echo "%p" ; %p ; read -p "%close")
+ 3. kdesu %terminal(echo "%p" ; %p ; read -p "%close")
 
 Choice 1 is the default. It requires you to type the root's password
 on every invocation of a pacman command.
@@ -499,14 +498,7 @@ time you can run another pacman command without having to type your
 password again. sudo normally requires you to type your own password
 instead of the 'root' password.
 
-Choice 3 requires the package 'gksu'. gksu can keep the 'root' password
-during the session or even store it in the gnome keyring. This minimizes
-the number of times you have to type the 'root' password, but it is
-less secure, because all commands can be run as root for as long as you
-are logged in with your normal account.
-
-Choice 4 requires the package 'kdesu'. kdesu is similar to
-gksu, but belongs to the KDE desktop.
+Choice 3 requires the package 'kdesu'. kdesu is well integrated in KDE.
 
 These commands are known to work. If you would like to use another
 runasroot, you can type a command instead of selecting one of these.
