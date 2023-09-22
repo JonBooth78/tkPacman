@@ -344,7 +344,7 @@ Zie Extra -> Opties.}
 about_tkp
 {tkPacman versie %1$s
 
-Copyright © Willem Herremans 2013-2018
+Copyright © Willem Herremans 2013-2020
 
 Dit programma is vrije software; u kunt het herverdelen en/of wijzigen onder de voorwaarden van de GNU General Public License zoals die gepubliceerd wordt door de Free Software Foundation; ofwel versie 2 van de licentie, ofwel (uw keuze) een latere versie.
 

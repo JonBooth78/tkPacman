@@ -4,7 +4,7 @@
 # This is 'tkPacman', lightweight GUI front end for the Arch linux
 # pacman utility.
 #
-# Copyright (C) 2013-2015 Willem Herremans
+# Copyright (C) 2013-2020 Willem Herremans
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -1602,7 +1602,7 @@ oo::class create ImportWin {
             } elseif {$option eq {-errorchan}} then {
                 set writeErr $value
             } else {
-                chan puts $writeErr "ImportWim '$option': unknown option"
+                chan puts $writeErr "ImportWin '$option': unknown option"
             }
         }
         set window [toplevel [appendToPath $parent \
@@ -1684,7 +1684,7 @@ oo::define ImportWin {
     method onSelectFile {} {
         set fs [FileSelection new \
             -parent $window \
-            -filetypes {{{Package} {*.pkg.tar.xz}} {{All files} {*}}}]
+            -filetypes {{{Package} {*.pkg.tar.*}} {{All files} {*}}}]
         set filename [$fs wait]
         if {[string length $filename] > 0} then {
             $btnInfo state {!disabled}

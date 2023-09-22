@@ -1,3 +1,9 @@
+Version 1.9.1 (2020-01-15)
+  - The filter in the file selection box called from "Install package
+    from local file" has been modified from "*.pkg.tar.xz" to
+    "*.pkg.tar.*". As a result, both packages with file extensions
+    ".pkg.tar.xz" and ".pkg.tar.zst" are shown in the file selection
+    box.
 Version 1.9.0 (2018-07-08)
   - Possibility to call "pacman-optimize" has been removed because
     pacman also does not provide it anymore.
