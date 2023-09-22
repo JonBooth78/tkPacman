@@ -255,10 +255,10 @@ packagesListed
 {Gelijst: }
 
 markedInstall
-{Aangestipt voor installatie: }
+{Installeren: }
 
-markedRemoval
-{Aangestipt voor verwijdering: }
+markedRemove
+{Verwijderen: }
 
 packagesAvail
 {Beschikbaar: }
@@ -350,11 +350,13 @@ tkPacman gebruikt %3$s als Tcl run time environment. The Tcl versie is %4$s.
 tkPacman is geïnstalleerd in %2$s}
 
 unappliedChanges {
-Er zijn nog pakketten aangestipt voor %2$s:
+Er zijn nog pakketten aangestipt voor installatie of verwijdering:
 
-%1$s
+installeren: %1$s
 
-Wat wilt u doen met deze operatie?}
+verwijderen: %2$s
+
+Wat wilt u doen met deze operaties?}
 
 closeTerminal
 {Druk op ENTER om de terminal te sluiten. }

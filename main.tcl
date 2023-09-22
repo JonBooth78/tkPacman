@@ -321,11 +321,11 @@ namespace eval comproc {
 #       - filter(currgroup): group for filtering in mode group
 #       - filter(currepo): repo for filtering in mode repo
 #       - filter(ownedfile): filename for filtering in mode fileowner
-#   - nrOfMarked: number of marked packages
+#   - nrOfMarked(total): total number of marked packages
+#   - nrOfMarked(install): number of packages marked for installation
+#   - nrOfMarked(remove): number of packages marked for removal
 #   - marklist: list of the names of marked packages
 #   - nrOfItems: number of items in packageBox
-#   - rbMode: same as packlist(mode), but this is the variable linked to the
-#       radiobuttons (see onModeSwitch for use)
 #   - errorlog: contains everything that is written to $writeErr channel
 #   - writeErr: channel opened for writing. All error messages are
 #       written to channel $writeErr.
@@ -340,9 +340,9 @@ namespace eval comproc {
 oo::class create MainWin {
 
     variable window filter packlist marklist errorlog readErr writeErr \
-        nrOfMarked nrOfItems rbMode \
+        nrOfMarked nrOfItems \
         packageBox fBox btnApply btnError txtInfo \
-        lbMarked lbAvail mnMark btnFiles btnInfo \
+        lbAvail mnMark btnFiles btnInfo \
         rbOrphans rbExplicit rbUpgrades rbForeign entSearch cmbGroup \
         menubar rbFileOwner cmbRepo txtError
 
@@ -354,17 +354,20 @@ oo::class create MainWin {
         set packlist(mode) sync
         set packlist(list) {}
         set packlist(length) 0
-        set rbMode sync
         set filter(mode) off
         set filter(pattern) {}
         set filter(currgroup) {}
         set filter(currepo) {}
         set filter(ownedfile) {}
-        set marklist {}
+        set marklist(install) {}
+        set marklist(remove) {}
         set errorlog {}
-        set nrOfMarked 0
+        set nrOfMarked(total) 0
+        set nrOfMarked(install) 0
+        set nrOfMarked(remove) 0
         set nrOfItems 0
         set txtError {}
+        set writeErr stderr
         # register sudo askpass helper
         global env
         set env(SUDO_ASKPASS) [file join $config::installDir askpass askpass.tcl]
@@ -460,23 +463,11 @@ oo::define MainWin {
                 } else {
                     set groups {}
                 }
-                if {[string index $first $cursor] eq "\["} then {
-                    # Ticket number 5.
-                    # We assume that the package is installed when there
-                    # is a field starting with "[". I hope that this is
-                    # correct. At any rate, we cannot rely on the word
-                    # between "[" and "]", as was the case in versions before
-                    # 1.3.0, because that word may be different for each locale.
-                    set installed 1
-                } else {
-                    set installed 0
-                }
             } else {
                 set version [string range $first $cursor end]
                 set groups {}
-                set installed 0
             }
-            return [list $repo $name $version $groups $installed]
+            return [list $repo $name $version $groups]
         }
         
         # Show "loading package list" before really loading it
@@ -484,14 +475,24 @@ oo::define MainWin {
         # the user is informed about what is happening.
         comproc updateTxtWidget $txtInfo [mc initPackList] {}
         update
+        if {$packlist(mode) eq {sync}} then {
+            # get installed list
+            set cmd [list pacman --query --quiet]
+            set packlist(installed) [lsort [split [comproc runCmd $cmd $writeErr] "\n"]]
+        }
         set cmd [list pacman --$packlist(mode) --search {}]
         set pacout [split [comproc runCmd $cmd $writeErr] "\n"]
         set last [expr {[llength $pacout] - 1}]
         set packlist(list) {}
         for {set i 0} {$i < $last} {incr i 2} {
             set first [lindex $pacout $i]
-            lassign [parseFirst $first] repo name version groups installed
+            lassign [parseFirst $first] repo name version groups
             set description [string trim [lindex $pacout $i+1]]
+            if {$packlist(mode) eq {sync}} then {
+                set installed [expr {[lsearch -sorted $packlist(installed) $name] >= 0}]
+            } else {
+                set installed 1
+            }
             lappend packlist(list) [list $installed $name $description $version $groups $repo]
         }
         unset pacout
@@ -515,11 +516,17 @@ oo::define MainWin {
         }
         set nrOfItems 0
         $packageBox delete [$packageBox children {}]
-        if {$nrOfMarked > 0} then {
+        if {$nrOfMarked(total) > 0} then {
             $btnApply state !disabled
-            set marklist [lsort $marklist]
+            set marklist(install) [lsort $marklist(install)]
+            set marklist(remove) [lsort $marklist(remove)]
         } else {
             $btnApply state disabled
+        }
+        if {$packlist(mode) eq {sync}} then {
+            set operation install
+        } else {
+            set operation remove
         }
         # Determine pacman command to get a list of filtered packages.
         # The list should only contain the package names. This usually
@@ -543,7 +550,7 @@ oo::define MainWin {
         if {$cmd ne {}} then {
             set filterList [lsort [split [comproc runCmd $cmd $writeErr] "\n"]]
         } elseif {$filter(mode) eq {pending}} then {
-            set filterList $marklist
+            set filterList $marklist($operation)
         } else {
             set filterList {}
         }
@@ -571,7 +578,7 @@ oo::define MainWin {
                 if {$installed} then {
                     $packageBox tag add installed $item
                 }
-                if {[lsearch -sorted $marklist $name] >= 0} then {
+                if {[lsearch -sorted $marklist($operation) $name] >= 0} then {
                     $packageBox tag add marked $item
                     if {$packlist(mode) eq {sync}} then {
                         $packageBox item $item -image ::img::marked
@@ -683,22 +690,27 @@ oo::define MainWin {
 
 oo::define MainWin {
     method onApply {refreshBox} {
-        if {$nrOfMarked > 0} then {
-            if {$packlist(mode) eq {sync}} then {
-                set cmd "pacman --sync $marklist"
-            } else {
-                set cmd "pacman --remove $marklist"
+        if {$nrOfMarked(total) > 0} then {
+            if {$nrOfMarked(remove) > 0} then {
+                set cmd "pacman --remove $marklist(remove)"
+                comproc runAsRoot $cmd $writeErr
             }
-            comproc runAsRoot $cmd $writeErr
-            set marklist {}
-            set nrOfMarked 0
+            if {$nrOfMarked(install) > 0} then {
+                set cmd "pacman --sync $marklist(install)"
+                comproc runAsRoot $cmd $writeErr
+            }
+            set marklist(install) {}
+            set marklist(remove) {}
+            set nrOfMarked(total) 0
+            set nrOfMarked(install) 0
+            set nrOfMarked(remove) 0
             $btnApply state disabled
             my refreshPackagelist
             if {$refreshBox} then {
                 my refreshPackageBox
             }
         } else {
-            chan puts $writeErr "onApply: btnApply active but nrOfMarked = 0"
+            chan puts $writeErr "onApply: btnApply active but nrOfMarked(total) = 0"
         }
         return
     }
@@ -727,16 +739,11 @@ oo::define MainWin {
 
 oo::define MainWin {
     method unappliedChanges {} {
-        if {$nrOfMarked > 0} then {
-            if {$packlist(mode) eq {sync}} then {
-                set for [mc forInstallation]
-            } else {
-                set for [mc forRemoval]
-            }
+        if {$nrOfMarked(total) > 0} then {
             set dlg [GenDialog new \
                 -parent $window \
                 -title [mc tkPacman] \
-                -message [mc unappliedChanges $marklist $for] \
+                -message [mc unappliedChanges $marklist(install) $marklist(remove)] \
                 -msgWidth 500 \
                 -buttonList {btnApplyShort btnForget} \
                 -defaultButton btnApply]
@@ -744,8 +751,11 @@ oo::define MainWin {
                 update
                 my onApply 0
             } else {
-                set nrOfMarked 0
-                set marklist {}
+                set nrOfMarked(total) 0
+                set nrOfMarked(install) 0
+                set nrOfMarked(remove) 0
+                set marklist(install) {}
+                set marklist(remove) {}
                 $btnApply state disabled
                 update
             }
@@ -756,15 +766,21 @@ oo::define MainWin {
 
 oo::define MainWin {
     method onToggleMark {} {
+        if {$packlist(mode) eq {sync}} then {
+            set operation install
+        } else {
+            set operation remove
+        }
         set item [$packageBox selection]
         set package [lindex [$packageBox item $item -values] 0]
         if {[$packageBox tag has marked $item]} then {
             $packageBox tag remove marked $item
             $packageBox item $item -image ::img::unmarked
-            set pkgIndex [lsearch -exact $marklist $package]
+            set pkgIndex [lsearch -exact $marklist($operation) $package]
             if {$pkgIndex >= 0} then {
-                set marklist [lreplace $marklist $pkgIndex $pkgIndex]
-                incr nrOfMarked -1
+                set marklist($operation) [lreplace $marklist($operation) $pkgIndex $pkgIndex]
+                incr nrOfMarked(total) -1
+                incr nrOfMarked($operation) -1
             } else {
                 chan puts $writeErr "onToggleMark: unmarking package that is not in 'marklist'"
             }
@@ -775,10 +791,11 @@ oo::define MainWin {
             } else {
                 $packageBox item $item -image ::img::remove
             }
-            lappend marklist $package
-            incr nrOfMarked 1
+            lappend marklist($operation) $package
+            incr nrOfMarked(total) 1
+            incr nrOfMarked($operation) 1
         }
-        if {$nrOfMarked > 0} then {
+        if {$nrOfMarked(total) > 0} then {
             $btnApply state {!disabled}
             
         } else {
@@ -790,6 +807,11 @@ oo::define MainWin {
 
 oo::define MainWin {
     method onMarkAll {} {
+        if {$packlist(mode) eq {sync}} then {
+            set operation install
+        } else {
+            set operation remove
+        }
         set apply 0
         if {$nrOfItems > 50} then {
             if {$packlist(mode) eq {sync}} then {
@@ -810,15 +832,18 @@ oo::define MainWin {
         }
         if {$apply} then {
             foreach item [$packageBox children {}] {
-                $packageBox tag add marked $item
-                if {$packlist(mode) eq {sync}} then {
-                    $packageBox item $item -image ::img::marked
-                } else {
-                    $packageBox item $item -image ::img::remove
+                if {![$packageBox tag has marked $item]} then {
+                    $packageBox tag add marked $item
+                    if {$packlist(mode) eq {sync}} then {
+                        $packageBox item $item -image ::img::marked
+                    } else {
+                        $packageBox item $item -image ::img::remove
+                    }
+                    set package [lindex [$packageBox item $item -values] 0]
+                    lappend marklist($operation) $package
+                    incr nrOfMarked(total) 1
+                    incr nrOfMarked($operation) 1
                 }
-                set package [lindex [$packageBox item $item -values] 0]
-                lappend marklist $package
-                incr nrOfMarked
             }
             $btnApply state {!disabled}
         }
@@ -828,19 +853,25 @@ oo::define MainWin {
 
 oo::define MainWin {
     method onUnMarkAll {} {
+        if {$packlist(mode) eq {sync}} then {
+            set operation install
+        } else {
+            set operation remove
+        }
         foreach item [$packageBox tag has marked] {
             $packageBox item $item -image ::img::unmarked
             set package [lindex [$packageBox item $item -values] 0]
-            set pkgIndex [lsearch -exact $marklist $package]
+            set pkgIndex [lsearch -exact $marklist($operation) $package]
             if {$pkgIndex >= 0} then {
-                set marklist [lreplace $marklist $pkgIndex $pkgIndex]
-                incr nrOfMarked -1
+                set marklist($operation) [lreplace $marklist($operation) $pkgIndex $pkgIndex]
+                incr nrOfMarked(total) -1
+                incr nrOfMarked($operation) -1
             } else {
                 chan puts $writeErr "onUnMarkAll: removing package not in marklist"
             }
         }
         $packageBox tag remove marked
-        if {$nrOfMarked == 0} then {
+        if {$nrOfMarked(total) == 0} then {
             $btnApply state disabled
         }
         return
@@ -859,7 +890,6 @@ oo::define MainWin {
 
 oo::define MainWin {
     method onSearch {} {
-        # my unappliedChanges
         set filter(mode) search
         set filter(currgroup) {}
         set filter(currepo) {}
@@ -881,11 +911,9 @@ oo::define MainWin {
         } elseif {$filter(mode) eq {repo}} then {
             focus $cmbRepo
         } elseif {$filter(mode) eq {fileowner}} then {
-            # my unappliedChanges
             set filter(ownedfile) [my getOwnedFile]
             my refreshPackageBox
         } elseif {$filter(mode) in {off pending upgrades orphans explicit foreign}} then {
-            # my unappliedChanges
             my refreshPackageBox
         }
         return
@@ -893,16 +921,11 @@ oo::define MainWin {
 }
 
 oo::define MainWin {
-    method onModeSwitch {newmode} {
+    method onModeSwitch {} {
         # This method is called when the user presses one of the radiobuttons
         # for Available or Installed packages
-        # postpone mode switch until all changes are applied or cancelled
-        set rbMode $packlist(mode)
-        my unappliedChanges
-        set packlist(mode) $newmode
-        set rbMode $newmode
-        if {(($packlist(mode) eq {sync}) && ($filter(mode) in {pending orphans explicit foreign fileowner})) || \
-            (($packlist(mode) eq {query}) && ($filter(mode) in {pending upgrades}))} then {
+        if {(($packlist(mode) eq {sync}) && ($filter(mode) in {orphans explicit foreign fileowner})) || \
+            (($packlist(mode) eq {query}) && ($filter(mode) in {upgrades}))} then {
             set filter(mode) off
             set filter(pattern) {}
             set filter(currgroup) {}
@@ -910,12 +933,10 @@ oo::define MainWin {
             set filter(ownedfile) {}
         }
         if {$packlist(mode) eq {sync}} then {
-            $lbMarked configure -text [mc markedInstall]
             $lbAvail configure -text [mc packagesAvail]
             $mnMark entryconfigure 0 -image ::img::marked
             $mnMark entryconfigure 1 -image ::img::installall
         } else {
-            $lbMarked configure -text [mc markedRemoval]
             $lbAvail configure -text [mc packagesInstalled]
             $mnMark entryconfigure 0 -image ::img::remove
             $mnMark entryconfigure 1 -image ::img::removeall
@@ -1397,11 +1418,11 @@ oo::define MainWin {
         # packlist(mode) bar
         set fMode [ttk::frame [appendToPath $window fMode] -relief groove]
         set rbAvailable [defineRadiobutton [appendToPath $fMode rbAvailable] \
-            $window rbAvailable [list [self object] onModeSwitch sync] \
-            [my varname rbMode] sync]
+            $window rbAvailable [list [self object] onModeSwitch] \
+            [my varname packlist(mode)] sync]
         set rbInstalled [defineRadiobutton [appendToPath $fMode rbInstalled] \
-            $window rbInstalled [list [self object] onModeSwitch query] \
-            [my varname rbMode] query]
+            $window rbInstalled [list [self object] onModeSwitch] \
+            [my varname packlist(mode)] query]
         grid $rbAvailable -column 0 -row 0 -pady 3 -padx 5
         grid $rbInstalled -column 1 -row 0 -pady 3 -padx 5
         grid anchor $fMode n
@@ -1433,14 +1454,6 @@ oo::define MainWin {
             -textvariable [my varname nrOfItems] -foreground blue4]
         pack $lbListed -side left
         pack $lbNrListed -side left
-        # marked packages
-        set fMarked [ttk::frame [appendToPath $fStatus fMarked]]
-        set lbMarked [ttk::label [appendToPath $fMarked lbMarked] \
-            -text [mc markedInstall] -foreground blue4]
-        set lbNrMarked [ttk::label [appendToPath $fMarked lbNrMarked] \
-            -textvariable [my varname nrOfMarked] -foreground blue4]
-        pack $lbMarked -side left
-        pack $lbNrMarked -side left
         # available packages
         set fAvail [ttk::frame [appendToPath $fStatus fAvail]]
         set lbAvail [ttk::label [appendToPath $fAvail lbAvail] \
@@ -1449,15 +1462,31 @@ oo::define MainWin {
             -textvariable [my varname packlist(length)] -foreground blue4]
         pack $lbAvail -side left
         pack $lbNrAvail -side left
+        # marked for install
+        set fMarkedInstall [ttk::frame [appendToPath $fStatus fMarkedInstall]]
+        set lbMarkedInstall [ttk::label [appendToPath $fMarkedInstall lbMarkedInstall] \
+            -text [mc markedInstall] -foreground blue4 -image ::img::marked -compound left]
+        set lbNrMarkedInstall [ttk::label [appendToPath $fMarkedInstall lbNrMarkedInstall] \
+            -textvariable [my varname nrOfMarked(install)] -foreground blue4]
+        pack $lbMarkedInstall -side left
+        pack $lbNrMarkedInstall -side left
+        # marked for remove
+        set fMarkedRemove [ttk::frame [appendToPath $fStatus fMarkedRemove]]
+        set lbMarkedRemove [ttk::label [appendToPath $fMarkedRemove lbMarkedRemove] \
+            -text [mc markedRemove] -foreground blue4 -image ::img::remove -compound left]
+        set lbNrMarkedRemove [ttk::label [appendToPath $fMarkedRemove lbNrMarkedRemove] \
+            -textvariable [my varname nrOfMarked(remove)] -foreground blue4]
+        pack $lbMarkedRemove -side left
+        pack $lbNrMarkedRemove -side left
         # sizegrip
         set sg [ttk::sizegrip [appendToPath $fStatus sg]]
         # pack status bar
         pack $lbNrOfPackages -side left -expand 1
-        pack $fListed -side left -expand 1
-        pack $fMarked -side left -expand 1
         pack $fAvail -side left -expand 1
+        pack $fListed -side left -expand 1
+        pack $fMarkedInstall -side left -expand 1
+        pack $fMarkedRemove -side left -expand 1
         pack $sg -side left
-
         pack $fStatus -side top -fill x
         return
     }

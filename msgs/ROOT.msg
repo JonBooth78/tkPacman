@@ -250,10 +250,10 @@ packagesListed
 {Listed: }
 
 markedInstall
-{Marked for installation: }
+{Install: }
 
-markedRemoval
-{Marked for removal: }
+markedRemove
+{Remove: }
 
 packagesAvail
 {Available: }
@@ -345,11 +345,13 @@ tkPacman is using %3$s as Tcl run time environment. The Tcl version is %4$s.
 tkPacman is installed in %2$s}
 
 unappliedChanges {
-There are still packages marked for %2$s:
+There are still packages marked for installation or removal:
 
-%1$s
+installation: %1$s
 
-What do you want to do with that operation?}
+removal: %2$s
+
+What do you want to do with these operations?}
 
 closeTerminal
 {Press ENTER to close the terminal. }

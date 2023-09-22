@@ -1,3 +1,13 @@
+Version 1.4.0 (2014-01-03)
+  - tkPacman now also remembers packages marked for installation or
+    removal across mode switches (from 'Available packages' to
+    'Installed packages' or vice versa).
+  - It is possible to mark packages for removal if there are already
+    packages marked for installation or vice versa.
+  - When the 'Apply changes' button is pressed, first the packages
+    marked for removal are removed and then the packages marked for
+    installation are installed.
+
 Version 1.3.1 (2013-11-29)
   - Ticket number 5. tkPacman crashes on startup in most non-English
     locales. Solved in procedure parseFirst in main.tcl.
