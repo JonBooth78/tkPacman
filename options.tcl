@@ -145,7 +145,8 @@ namespace eval tkpOptions {
         {mate-terminal --disable-factory --title=%t --command=%c} \
         {vte-2.91 --name=%t --command=%c} \
         {qterminal --execute %c} \
-        {xterm -title %t -e %c}]
+        {xterm -title %t -e %c} \
+        {C:\\msys64\\msys2_shell.cmd -c %c}]
     set runasrootList [list \
         {%terminal(echo "%p" ; su --command="%p" ; read -p "%close")} \
         {sudo --askpass %terminal(echo "%p" ; %p ; read -p "%close")} \
