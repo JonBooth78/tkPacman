@@ -164,6 +164,12 @@ btnApplyShort
 btnForget
 {&Forget}
 
+btnAll
+{All}
+
+btnNoLongerInstalled
+{No longer installed}
+
 }
 
 # Main window
@@ -330,7 +336,7 @@ Use Tools -> Options.}
 about_tkp
 {tkPacman version %1$s
 
-Copyright © Willem Herremans 2013
+Copyright © Willem Herremans 2013-2014
 
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 
@@ -369,6 +375,12 @@ browserAsRoot
 
 errorLog
 {tkPacman - Error messages}
+
+whichClean
+{Clean cache}
+
+helpClean
+{Do you want to remove all packages from the cache, or only the pacakges that are no longer installed?}
 
 }
 
@@ -467,12 +479,13 @@ commands:
 Choice 1 is the default. It requires you to type the root's password
 on every invocation of a pacman command.
 
-Choice 2 is the recommended choice. It requires the package 'sudo'
-and a properly configured '/etc/sudoers' file. It has the advantage
-that it caches your password during a certain time (5 minutes by default).
-During that time you can run another pacman command without having to
-type your password again. sudo normally requires you to type your own
-password instead of the 'root' password.
+Choice 2 requires the package 'sudo' and a properly configured 
+'/etc/sudoers' file. It has the advantage that it caches your 
+password during a certain time (5 minutes by default). During that 
+time you can run another pacman command without having to type your 
+password again. sudo normally requires you to type your own password 
+instead of the 'root' password. If you are using KDE, it is probably
+better to use 'kdesu'.
 
 Choice 3 requires the package 'gksu'. gksu can keep the 'root' password
 during the session or even store it in the gnome keyring. This minimizes

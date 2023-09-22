@@ -61,6 +61,10 @@ sudo konsole
 
 in te typen in een terminal (konsole) venster.
 
+'Defaults env_keep += "HOME"' heeft echter het ongewenste effect dat programma's die uitgevoerd worden met 'sudo' hun configuratie opslaan in uw thuismap in plaats van in de thuismap van 'root'. Dat kan tot verwarrende effecten leiden zoals de configuratie niet meer kunnen wijzigen van prgramma's die u als gewone gebruiker uitvoert.
+
+Daarom is het waarschijnlijk beter 'kdesu' te gebruiken in plaats van 'sudo' als u KDE gebruikt.
+
 Door een lijn
 
 Defaults timestamp_timeout = 10

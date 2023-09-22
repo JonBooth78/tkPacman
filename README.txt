@@ -1,7 +1,7 @@
 tkPacman is a graphical user interface for pacman, the package
 manager for Arch Linux.
 
-Copyright © 2013 Willem Herremans
+Copyright © 2013-2014 Willem Herremans
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

@@ -166,6 +166,12 @@ btnApplyShort
 btnForget
 {&Vergeten}
 
+btnAll
+{Alle}
+
+btnNoLongerInstalled
+{Niet meer geïnstalleerd}
+
 }
 
 # Main window
@@ -335,7 +341,7 @@ Zie Extra -> Opties.}
 about_tkp
 {tkPacman versie %1$s
 
-Copyright © Willem Herremans 2013
+Copyright © Willem Herremans 2013-2014
 
 Dit programma is vrije software; u kunt het herverdelen en/of wijzigen onder de voorwaarden van de GNU General Public License zoals die gepubliceerd wordt door de Free Software Foundation; ofwel versie 2 van de licentie, ofwel (uw keuze) een latere versie.
 
@@ -374,6 +380,13 @@ browserAsRoot
 
 errorLog
 {tkPacman - Foutberichten}
+
+whichClean
+{Cache opruimen}
+
+helpClean
+{Wilt u alle pakketten verwijderen uit de cache of alleen de pakketten die niet meer geïnstalleerd zijn?}
+
 
 }
 
@@ -476,12 +489,13 @@ Door de drop down box te gebruiken, kunt u kiezen uit de volgende
 Keuze 1 is de standaard keuze. Ze vereist dat u het 'root' wachtwoord
 invoert bij elk pacman commando.
 
-Keuze 2 is de aanbevolen keuze. Ze vereist het pakket 'sudo' en
-en een geconfigureerd '/etc/sudoers' bestand. Ze heeft het voordeel dat
-uw wachtwoord een zekere tijd onthouden wordt door sudo (standaard 5
-minuten). Gedurende deze tijd kunt u een ander pacman commando uitvoeren
-zonder uw wachtwoord te moeten invoeren. Normaal vereist sudo dat u uw
-eigen wachtwoord invoert in plaats van het 'root' wachtwoord.
+Keuze 2 vereist het pakket 'sudo' en en een geconfigureerd 
+'/etc/sudoers' bestand. Ze heeft het voordeel dat uw wachtwoord een 
+zekere tijd onthouden wordt door sudo (standaard 5 minuten). 
+Gedurende deze tijd kunt u een ander pacman commando uitvoeren 
+zonder uw wachtwoord te moeten invoeren. Normaal vereist sudo dat u 
+uw eigen wachtwoord invoert in plaats van het 'root' wachtwoord. Als
+u KDE gebruikt kunt u waarschijnlijk beter 'kdesu' gebruiken.
 
 Keuze 3 vereist het pakket 'gksu'. gksu kan het 'root' wachtwoord
 onthouden gedurende de sessie of zelfs opslaan in de gnome keyring.

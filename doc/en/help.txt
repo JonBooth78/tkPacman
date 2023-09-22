@@ -57,6 +57,10 @@ sudo konsole
 
 in a terminal (konsole) window.
 
+However, 'Defaults env_keep += "HOME"' has the undesired effect that programs run with 'sudo' store their configuration file in your home directory instead of the root's home directory. This may lead to confusing effects such as not being able to change the configuration of programs you run as normal user.
+
+Therefore, it is probably better to use 'kdesu' instead of 'sudo' if you are using KDE.
+
 By adding a line
 
 Defaults timestamp_timeout = 10

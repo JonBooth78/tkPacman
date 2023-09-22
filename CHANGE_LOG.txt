@@ -1,3 +1,14 @@
+Version 1.5.0 (2014-04-13)
+  - The action 'Clean cache' in menu 'Pacman' now offers the choice
+    to clean up all packages or only the ones that are no longer
+    installed.
+  - The statement 'Defaults env_keep += "HOME"' which was recommended
+    in the help text for configuring 'sudo' has some undesired effects.
+    The help text has been changed accordingly. If you are using
+    tkPacman in KDE, it is probably better to use 'kdesu' instead
+    of 'sudo' and to remove the offending statement form /etc/sudoers
+    by calling 'visudo'.
+
 Version 1.4.0 (2014-01-03)
   - tkPacman now also remembers packages marked for installation or
     removal across mode switches (from 'Available packages' to

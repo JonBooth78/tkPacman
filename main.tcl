@@ -1108,8 +1108,20 @@ oo::define MainWin {
 
 oo::define MainWin {
     method cleanCache {} {
-        set cmd "pacman --sync --clean --clean"
-        comproc runAsRoot $cmd $writeErr
+        set dlg [GenDialog new -title [mc whichClean] \
+            -message [mc helpClean] \
+            -msgWidth 400 \
+            -buttonList [list btnCancel btnAll btnNoLongerInstalled] \
+            -defaultButton btnNoLongerInstalled]
+        set result [$dlg wait]
+        update
+        if {$result eq "btnAll"} then {
+            set cmd "pacman --sync --clean --clean"
+            comproc runAsRoot $cmd $writeErr
+        } elseif {$result eq "btnNoLongerInstalled"} then {
+            set cmd "pacman --sync --clean"
+            comproc runAsRoot $cmd $writeErr
+        }
         return
     }
 }
