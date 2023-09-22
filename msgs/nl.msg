@@ -52,6 +52,9 @@ mnuClean
 mnuImport
 {Lokaal pakket installeren}
 
+mnuOptimize
+{Pacman database optimiseren}
+
 mnuQuit
 {&Verlaten}
 
@@ -114,9 +117,9 @@ btnLegend
 btnWebsite
 {&Website}
 
-btnRefresh
-{&Database
-Synchroniseren}
+btnCheckUp
+{&Check
+Opwaarderingen}
 
 btnSysUpgrade
 {Systeem
@@ -195,7 +198,7 @@ beschrijving  : %2$s
 versie        : %3$s
 geïnstalleerd : %4$s
 groepen       : %5$s
-depot         : %6$s}
+archief       : %6$s}
 
 
 spaceDouble
@@ -217,7 +220,7 @@ rbGroup
 {&Groep}
 
 rbRepo
-{Depot}
+{Archief}
 
 rbSearch
 {&Woord}
@@ -273,7 +276,7 @@ packagesInstalled
 {Geïnstalleerd: }
 
 allAvailable
-{Alle pakketten beschikbaar in depots}
+{Alle pakketten beschikbaar in archieven}
 
 filterWordAvailable
 {Alle beschikbare pakketten met het woord '%1$s' in 'naam' of 'beschrijving'}
@@ -291,10 +294,10 @@ filterGroupInstalled
 {Alle geïnstalleerde pakketten in groep '%1$s'}
 
 filterRepoAvailable
-{Alle beschikbare pakketten in depot '%1$s'}
+{Alle beschikbare pakketten in archief '%1$s'}
 
 filterRepoInstalled
-{Alle geïnstalleerde pakketten van depot '%1$s'}
+{Alle geïnstalleerde pakketten van archief '%1$s'}
 
 filterOrphans
 {Alle pakketten geïnstalleerd omwille van afhankelijkheid maar niet meer vereist}
@@ -315,7 +318,7 @@ filterUpgrades
 {Beschikbare opwaarderingen}
 
 filterForeign
-{Geïnstalleerde pakketten die niet beschikbaar zijn in de depots}
+{Geïnstalleerde pakketten die niet beschikbaar zijn in de archieven}
 
 filterFileowner
 {Geïnstalleerd pakket dat eignaar is van '%1$s'}
@@ -341,7 +344,7 @@ Zie Extra -> Opties.}
 about_tkp
 {tkPacman versie %1$s
 
-Copyright © Willem Herremans 2013-2014
+Copyright © Willem Herremans 2013-2015
 
 Dit programma is vrije software; u kunt het herverdelen en/of wijzigen onder de voorwaarden van de GNU General Public License zoals die gepubliceerd wordt door de Free Software Foundation; ofwel versie 2 van de licentie, ofwel (uw keuze) een latere versie.
 
@@ -373,7 +376,9 @@ runAsRoot
 warningUpgrade
 {De aanbevolen methode om het systeem op te waarderen is op de knop 'Systeem Opwaarderen' te drukken.
 
-De filter 'Opwaarderingen' is vooral bedoeld om selectief bepaalde pakketten op te waarderen.}
+Als er hier pakketten getoond worden heeft er mogelijks een "gedeeltelijke opwaardering" plaatsgevonden.
+
+Het is sterk aanbevolen alle hier getoonde opwaarderingen te installeren.}
 
 browserAsRoot
 {tkPacman weigert de web browser uit te voeren als root}
@@ -436,13 +441,13 @@ optHelp_terminal {
 Het commando waarmee het terminal programma zal worden opgeroepen
 om pacman commando's uit te voeren.
 
-De selectie dialoog laat u keizen uit de volgende commando's voor
+De selectie dialoog laat u kiezen uit de volgende commando's voor
 het oproepen van een terminal programma:
 
-    lxterminal --title=%t --command=%c
     xfce4-terminal --disable-server --title=%t --command=%c
     konsole --nofork --caption %t -e %c
-    roxterm --title=%t --execute %c
+    mate-terminal --disable-factory --title=%t --command=%c
+    roxterm --separate --title=%t --execute %c
     vte --name=%t --command=%c
     xterm -title %t -e %c
 
@@ -457,9 +462,14 @@ van er een te kiezen uit de lijst.
 De standaard keuze is de eerste van de bovenstaande keuzelijst die
 werkelijk geïnstalleerd is.
 
-Ik heb ook geprobeerd gnome-terminal te laten werken, maar die
-begint altijd op de achtergrond te lopen waardoor deze niet bruikbaar
-is in de context van tkPacman.}
+Voor het gebruik in de context van tkPacman is het belangrijk dat het
+terminal programma de controle maar teruggeeft aan tkPacman nadat het
+commando '%c' volledig is uitgevoerd. Sommige terminal programma's
+gedragen zich goed in dat opzicht: vte en xterm. Andere moeten
+opgeroepen worden met een speciale optie: xfce4-terminal
+--disable-server, mate-terminal --disable-factory, roxterm --separate,
+konsole --nofork. Nog andere kan ik er niet van weerhouden de controle
+onmiddelijk terug te geven aan tkPacman: gnome-terminal, lxterminal.}
 
 optHelp_runasroot {
 Het commando dat tkPacman moet gebruiken om pacman commando's uit te
@@ -489,11 +499,11 @@ Door de drop down box te gebruiken, kunt u kiezen uit de volgende
 Keuze 1 is de standaard keuze. Ze vereist dat u het 'root' wachtwoord
 invoert bij elk pacman commando.
 
-Keuze 2 vereist het pakket 'sudo' en en een geconfigureerd 
-'/etc/sudoers' bestand. Ze heeft het voordeel dat uw wachtwoord een 
-zekere tijd onthouden wordt door sudo (standaard 5 minuten). 
-Gedurende deze tijd kunt u een ander pacman commando uitvoeren 
-zonder uw wachtwoord te moeten invoeren. Normaal vereist sudo dat u 
+Keuze 2 vereist het pakket 'sudo' en en een geconfigureerd
+'/etc/sudoers' bestand. Ze heeft het voordeel dat uw wachtwoord een
+zekere tijd onthouden wordt door sudo (standaard 5 minuten).
+Gedurende deze tijd kunt u een ander pacman commando uitvoeren
+zonder uw wachtwoord te moeten invoeren. Normaal vereist sudo dat u
 uw eigen wachtwoord invoert in plaats van het 'root' wachtwoord. Als
 u KDE gebruikt kunt u waarschijnlijk beter 'kdesu' gebruiken.
 

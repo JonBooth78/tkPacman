@@ -50,6 +50,9 @@ mnuClean
 mnuImport
 {Install local package}
 
+mnuOptimize
+{Optimize pacman database}
+
 mnuQuit
 {&Quit}
 
@@ -112,9 +115,9 @@ btnLegend
 btnWebsite
 {&Website}
 
-btnRefresh
-{&Resync
-Database}
+btnCheckUp
+{Chec&k
+Upgrades}
 
 btnSysUpgrade
 {System
@@ -336,11 +339,11 @@ Use Tools -> Options.}
 about_tkp
 {tkPacman version %1$s
 
-Copyright © Willem Herremans 2013-2014
+Copyright © Willem Herremans 2013-2015
 
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See 'Help -> License' for details.
 
@@ -368,7 +371,9 @@ runAsRoot
 warningUpgrade
 {The recommended way to perform a system upgrade is to press the 'System Upgrade' button.
 
-The 'Upgrades' filter is mainly meant to selectively upgrade some packages.}
+If there are any packages here, your systeem may have had a "partial upgrade".
+
+It is highly recommended to install all the upgrades shown here.}
 
 browserAsRoot
 {tkPacman refuses to start browser as 'root'}
@@ -433,10 +438,10 @@ pacman commands.
 Using the drop down box, you can choose between the following terminal
 invocation commands:
 
-    lxterminal --title=%t --command=%c
     xfce4-terminal --disable-server --title=%t --command=%c
     konsole --nofork --caption %t -e %c
-    roxterm --title=%t --execute %c
+    mate-terminal --disable-factory --title=%t --command=%c
+    roxterm --separate --title=%t --execute %c
     vte --name=%t --command=%c
     xterm -title %t -e %c
 
@@ -449,9 +454,14 @@ terminal, you can type a command instead of selecting one of these.
 The default is the first one of the list above that is actually
 installed.
 
-I have tried to get gnome-terminal working, but it is always forking
-to the background, which makes it impossible to use it in the context
-of tkPacman.}
+For use in the context of tkPacman, it is important that the terminal
+program does not return control to tkPacman until the command '%c' has
+been completed. Some terminal programs behave well in that respect:
+xterm and vte. Others need to be called with a special option:
+xfce4-terminal --disable-server, mate-terminal --disable-factory,
+roxterm --separate, konsole --nofork. Still others I could not prevent
+from returning control to tkPacman immediately: gnome-terminal,
+lxterminal.}
 
 optHelp_runasroot {
 The command that tkPacman should use to execute pacman commands as root.
@@ -479,11 +489,11 @@ commands:
 Choice 1 is the default. It requires you to type the root's password
 on every invocation of a pacman command.
 
-Choice 2 requires the package 'sudo' and a properly configured 
-'/etc/sudoers' file. It has the advantage that it caches your 
-password during a certain time (5 minutes by default). During that 
-time you can run another pacman command without having to type your 
-password again. sudo normally requires you to type your own password 
+Choice 2 requires the package 'sudo' and a properly configured
+'/etc/sudoers' file. It has the advantage that it caches your
+password during a certain time (5 minutes by default). During that
+time you can run another pacman command without having to type your
+password again. sudo normally requires you to type your own password
 instead of the 'root' password. If you are using KDE, it is probably
 better to use 'kdesu'.
 
@@ -518,7 +528,7 @@ optSelecttmpdir
 
 optHelp_tmpdir
 {When tkPacman executes a pacman command as root, it writes temporary
-script files 'tkpacman-xterm.sh' and 'tkpacman-cmd.sh' to the directory 
+script files 'tkpacman-xterm.sh' and 'tkpacman-cmd.sh' to the directory
 defined by this option.}
 
 }

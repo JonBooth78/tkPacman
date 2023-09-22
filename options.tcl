@@ -25,10 +25,10 @@ namespace eval tkpOptions {
     }
     set window {}
     set terminalList [list \
-        {lxterminal --title=%t --command=%c} \
         {xfce4-terminal --disable-server --title=%t --command=%c} \
         {konsole --nofork --caption %t -e %c} \
-        {roxterm --title=%t --execute %c} \
+        {mate-terminal --disable-factory --title=%t --command=%c} \
+        {roxterm --separate --title=%t --execute %c} \
         {vte --name=%t --command=%c} \
         {xterm -title %t -e %c}]
     set runasrootList [list \
@@ -78,7 +78,7 @@ namespace eval tkpOptions {
         variable optionDict
         variable optionArray
         variable window
-        
+
         set filename [file normalize "~/.tkpacman"]
         set chan [open $filename w]
         chan puts $chan $optionDict

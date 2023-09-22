@@ -2,7 +2,7 @@
 
 Door op de radioknoppen juist onder de werkbalk te drukken, kunt u afwisselen tussen 'Beschikbare pakketten' en 'Geïnstalleerde pakketten'.
 
-Beschikbare pakketten kunnen opgehaald worden van de software depots (repositories) die gedefinieerd zijn in /etc/pacman.conf.
+Beschikbare pakketten kunnen opgehaald worden van de software archieven (repositories) die gedefinieerd zijn in /etc/pacman.conf.
 
 Als 'Beschikbare pakketten' getoond worden, kunt u pakketten aanstippen voor installatie.
 
@@ -15,22 +15,41 @@ De speciale filter 'Aangestipt' laat de pakketten zien die aangestipt zijn voor 
 Door op de knop 'Veranderingen toepassen' te drukken, kunt u de aangestipte pakketten installeren of verwijderen.
 
 
-<b>Database synchroniseren</b>
-
-pacman heeft een database met informatie over de pakketten in de software depots.
-
-Deze database moet up to date gehouden worden door het commando 'pacman --sync --refresh' uit te voeren.
-
-U kunt dit eenvoudig doen door op de knop 'Database synchroniseren' te drukken.
-
-Hierbij worden geen pakketten opgewaardeerd.
-
-
 <b>Systeem opwaarderen</b>
 
 Door op de knop 'Systeem Opwaarderen' te drukken wordt het pacman commando 'pacman --sync --refresh --sysupgrade' uitgevoerd.
 
-Hierbij wordt de database gesynchroniseerd en worden alle geïnstalleerde pakketten opgewaardeerd naar de laatste beschikbare versie.
+Hierbij wordt de pakketten database gesynchroniseerd met de software archieven en worden alle geïnstalleerde pakketten opgewaardeerd naar de laatste beschikbare versie.
+
+
+<b>Gedeeltelijke opwaarderingen</b>
+
+Bij een "gedeeltelijke opwaardering" worden sommige opwaardeerbare pakketten opgewaardeerd terwijl andere opwaardeerbare pakketten niet opgewaardeerd worden.
+
+"Gedeeltelijke opwaarderingen" kunnen ernstige problemen veroorzaken. Zie
+
+https://wiki.archlinux.org/index.php/Pacman#Partial_upgrades_are_unsupported
+
+en
+
+http://gist.io/5660494
+
+voor meer details.
+
+Je kunt een "gedeeltelijke opwaardering" krijgen door 'pacman --sync --refresh' uit te voeren zonder '--sysupgrade' en dan nieuwe pakketten te installeren met 'pacman --sync pkg1 pkg2 ...'.
+
+Oudere versies van tkPacman (<= 1.5.0) hadden een knop 'Database Synchroniseren' die 'pacman --sync --refresh' opriep. Vanaf versie 1.6.0. is deze knop vervangen door 'Check opwaarderingen' (zie hieronder).
+
+Je kunt nog altijd een "gedeeltelijke opwaardering" krijgen als je "n" antwoordt op de vraag "Doorgaan met de installatie? [J/n]" nadat je op 'Systeem opwaarderen' hebt gedrukt en daarna nieuwe pakketten installeert met 'pacman --sync pkg1 pkg2 ...'.
+
+Je kunt ook nog een "gedeeltelijke opwaardering" krijgen als je 'IgnorePkg' of 'IgnoreGroup' hebt gezet in /etc/pacman.conf.
+
+
+<b>Check Upgrades</b>
+
+Door op de knop 'Check Upgrades' te drukken, wordt het script "checkupdates" uitgevoerd dat een onderdeel is van het pacman pakket.
+
+Dit script toont de lijst van opwaardeerbare pakketten maar laat de pakketten database ongemoeid. Het kan gebruikt worden zonder het risico op "gedeeltelijke opwaarderingen" te verhogen.
 
 
 <b>'sudo' configureren</b>
