@@ -1,3 +1,15 @@
+##
+
+Note: This is a copy of the [original distribution](http://sourceforge.net/projects/tkpacman/)
+
+All that has changed here is I hacked around with it to make it run on my windows MSY2 environment and added reconciliation after applying changes so that any changes that failed to be applied are still selected.
+
+To run on MSYS2 I made sure I had tcl and tk installed and then changed in to the directory with this in and ran `tclsh main.tcl` and set the options appropriately.  I also had to decrease the font size a bit to make the rows readable.
+
+If you find this, feel free to do with it what you will, I needed something and this was my way of getting there.  I doubt I'll come back to it :-)
+
+# Original Readme
+
 tkPacman is a graphical user interface for pacman, the package
 manager for Arch Linux.
 
