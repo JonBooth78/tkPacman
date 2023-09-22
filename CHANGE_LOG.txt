@@ -1,30 +1,48 @@
+Version 1.1.0 (2013-10-23)
+  - Filter 'upgrades' now uses 'pacman --query --upgrades' instead
+    of "pacman --sync --sysupgrade --print --print-format %n". Thanks 
+    to Fabien Coutant (see ticket nr 2 on sourceforge:
+    http://sourceforge.net/p/tkpacman/tickets/2/).
+  - The option 'sudo' has been replaced with a more flexible 'runasroot'
+    option which makes it possible for the user to choose an alternative
+    authentication program such as gksu. Thanks again to Fabien Coutant
+    (see ticket nr 3 on sourceforge:
+    http://sourceforge.net/p/tkpacman/tickets/3/)
+  - The warning message for filter 'upgrades' now appears in the lower
+    text pane instead of in a popup window.
+  - The way 'sudo' is used has been improved. tkPacman provides a
+    grapphical helper for getting the user's password. Because sudo
+    is now called directly from tkPacman, sudo's feature of caching
+    the user's password during a certain time (default 5 minutes) now
+    also works in the context of tkPacman.
+
 Version 1.0.6 (2013-09-23)
-    - Informative message when using filter 'upgrades' has been added.
+  - Informative message when using filter 'upgrades' has been added.
 
 Version 1.0.5 (2013-09-10)
-    - First stable release
-    - Clean pacman cache has been added
-    - Some corrections to Dutch translation
-    - Small optimisation of 'refreshPackageList'
+  - First stable release
+  - Clean pacman cache has been added
+  - Some corrections to Dutch translation
+  - Small optimisation of 'refreshPackageList'
 
 Version 1.0.b4 (2013-09-05)
-    - Some corrections for Dutch translation
-    - When possible, filter stays active on mode switch.
-    - Small improvements of help text for option terminal.
-    - Cleanup of code.
+  - Some corrections for Dutch translation
+  - When possible, filter stays active on mode switch.
+  - Small improvements of help text for option terminal.
+  - Cleanup of code.
 
 Version 1.0.b3 (2013-09-02)
-    - Modified procedure for finding URL in info. The original procedure
-      relied on a text search for "URL : ". This did work for locale
-      nl_NL.UTF-8, but not for locale en_GB.UTF-8 and probably neither
-      for many other locales. The new procedure just looks for "http://"
-      or "https://".
-    - Icon was modified again.
+  - Modified procedure for finding URL in info. The original procedure
+    relied on a text search for "URL : ". This did work for locale
+    nl_NL.UTF-8, but not for locale en_GB.UTF-8 and probably neither
+    for many other locales. The new procedure just looks for "http://"
+    or "https://".
+  - Icon was modified again.
 
 version 1.0.b2 (2013-09-01)
-    - Dutch translation has been added
-    - New button on toolbar for "Local Package"
-    - New icon
+  - Dutch translation has been added
+  - New button on toolbar for "Local Package"
+  - New icon
 
 version 1.0.b1 (2013-08-25)
-    - First beta version of tkPacman.
+  - First beta version of tkPacman.

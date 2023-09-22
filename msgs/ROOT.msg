@@ -174,6 +174,11 @@ hdName
 hdDescription
 {Description}
 
+initPackList
+{
+
+    Loading the package list}
+
 generalYes
 {yes}
 
@@ -334,7 +339,10 @@ runAsRoot
 warningUpgrade
 {The recommended way to perform a system upgrade is to press the 'System Upgrade' button.
 
-Marking all the packages listed here and then pressing the 'Apply Changes' button, is not the same as pressing the 'System Upgrade' button.}
+The 'Upgrades' filter is mainly meant to selectively upgrade some packages.}
+
+browserAsRoot
+{tkPacman refuses to start browser as 'root'}
 
 }
 
@@ -404,12 +412,48 @@ I have tried the more sofisticated terminals like gnome-terminal,
 konsole and xfce4-terminal, but I could not get them to work properly
 in the context of tkPacman.}
 
-optHelp_sudo {
-Should tkPacman use 'sudo' for executing commands as 'root'?
+optHelp_runasroot {
+The command that tkPacman should use to execute pacman commands as root.
 
-If not, tkPacman will use 'su' for executing commands as 'root'.
+This string may contain some special symbols that will be interpreted
+by tkPacman.
 
-Default: No.}
+%p will be replaced with the pacman command to execute.
+
+%close will be replaced with a message inviting the user to press
+ENTER to close the terminal when the command has finished.
+
+%terminal(cmdlist) will execute the commands from the argument 'cmdlist'
+in the terminal emulation program defined by the option 'terminal'.
+The commands in 'cmdlist' must be separated by ';'.
+
+Using the drop down box, you can choose between the following runasroot
+commands:
+
+ 1. %terminal(echo "%p" ; su --command="%p" ; read -p "%close")
+ 2. sudo --askpass %terminal(echo "%p" ; %p ; read -p "%close")
+ 3. gksu --description pacman %terminal(echo "%p" ; %p ; read -p "%close")
+
+Choice 1 is the default. It requires you to type the root's password
+on every invocation of a pacman command.
+
+Choice 2 is the recommended choice. It requires the package 'sudo'
+and a properly configured '/etc/sudoers' file. It has the advantage
+that it caches your password during a certain time (5 minutes by default).
+During that time you can run another pacman command without having to
+type your password again. sudo normally requires you to type your own
+password instead of the 'root' password.
+
+Choice 3 requires the package 'gksu'. This can keep the 'root' password
+during the session or even store it in the gnome keyring. This minimizes
+the number of times you have to type the 'root' password, but it is
+less secure, because all commands can be run as root for as long as you
+are logged in with your normal account.
+
+These commands are known to work. If you would like to use another
+runasroot, you can type a command instead of selecting one of these.
+
+Default: the first one from the above list.}
 
 optPasteFilename
 {&Paste filename}

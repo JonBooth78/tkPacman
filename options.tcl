@@ -7,7 +7,7 @@
 
 namespace eval tkpOptions {
     variable optionStructure [list \
-        general [list browser terminal sudo] \
+        general [list browser terminal runasroot tmpdir] \
         geometry [list main text import] \
         fileselection [list lastdir]]
     variable optionDict
@@ -28,6 +28,10 @@ namespace eval tkpOptions {
         {lxterminal --title=%t --command=%c} \
         {vte --name=%t --command=%c} \
         {roxterm --title=%t --execute %c}]
+    set runasrootList [list \
+        {%terminal(echo "%p" ; su --command="%p" ; read -p "%close")} \
+        {sudo --askpass %terminal(echo "%p" ; %p ; read -p "%close")} \
+        {gksu --description pacman %terminal(echo "%p" ; %p ; read -p "%close")}]
     namespace ensemble create -subcommands [list getDefault \
         getOption initOptions saveOptions setOption showWindow]
 }
@@ -118,8 +122,11 @@ namespace eval tkpOptions {
             "terminal" {
                 set value {lxterminal --title=%t --command=%c}
             }
-            "sudo" {
-                set value {0}
+            "runasroot" {
+                set value {%terminal(echo "%p" ; su --command="%p" ; read -p "%close")}
+            }
+            "tmpdir" {
+                set value {/tmp}
             }
             default {
                 set value {}
@@ -244,11 +251,10 @@ namespace eval tkpOptions {
             set lbl [ttk::label ${frm}.lb$idx -text $option \
                 -compound right -image ::img::empty_5_9]
             grid $lbl -column 0 -row $idx -sticky w
-            if {$option eq {sudo}} then {
-                set control [ttk::checkbutton ${frm}.con$idx \
-                    -text {} \
-                    -variable tkpOptions::optionArray($tab,$option) \
-                    -onvalue 1 -offvalue 0]
+            if {$option eq {runasroot}} then {
+                set control [ttk::combobox ${frm}.con$idx \
+                    -textvariable tkpOptions::optionArray($tab,$option) \
+                    -values $tkpOptions::runasrootList]
             } elseif {$option eq {terminal}} then {
                 set control [ttk::combobox ${frm}.con$idx \
                     -textvariable tkpOptions::optionArray($tab,$option) \

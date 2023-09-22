@@ -5,7 +5,7 @@ namespace eval config {
         variable installDir
         variable licenseDir
         variable languageDir
-        variable version {1.0.6}
+        variable version {1.1.0}
         variable website {http://sourceforge.net/projects/tkpacman/}
         set installDir [file dirname [file normalize [info script]]]
         # puts "installDir = $installDir"

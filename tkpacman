@@ -1,3 +1,2 @@
 #!/bin/sh
 exec /usr/bin/tclsh /usr/share/tkpacman/main.tcl
-exit

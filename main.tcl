@@ -16,9 +16,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # The home page for the tkPacman project is at
 #
@@ -102,6 +102,9 @@ image create bitmap ::img::box \
 image create photo ::img::tkpacman_icon \
     -file [file join $config::installDir icons "tkpacman-icon.png"]
     
+image create photo ::img::warning \
+    -file [file join $config::installDir icons "warning.png"]
+    
 global readonlyBackground
 set readonlyBackground {#F3F0EB}
 
@@ -144,10 +147,10 @@ namespace eval comproc {
         foreach arg $cmd {
             lappend exec $arg
         }
-        # lappend exec 2>@1
+        lappend exec 2>@ stderr
         if {[catch $exec result]} then {
             set msg "Error executing '$exec'.\n$result"
-            puts $msg
+            chan puts stderr $msg
             set result {}
         }
         return $result
@@ -155,35 +158,54 @@ namespace eval comproc {
 }
 
 namespace eval comproc {
-    proc runAsRoot {cmd parent} {
+    proc runAsRoot {cmd} {
+        global env
+        set env(SUDO_ASKPASS) [file join $config::installDir askpass askpass.tcl]
         set terminal [tkpOptions getOption general terminal]
-        set sudo [tkpOptions getOption general sudo]
+        set runasroot [tkpOptions getOption general runasroot]
+        set tmpdir [tkpOptions getOption general tmpdir]
         set close [mc closeTerminal]
-        if {$sudo} then {
-            set termcmd "sh -c 'echo \"$cmd\" ; sudo ${cmd} ; read -p \"${close}\"'"
-        } else {
-            set termcmd "sh -c 'echo \"$cmd\" ; su --login --command \"${cmd}\" ; read -p \"${close}\"'"
-        }
         set title [mc runAsRoot]
-        set exec exec
-        set map [list %t $title %c $termcmd]
-        foreach item $terminal {
-            set item [string map $map $item]
-            lappend exec $item
-        }
-        # puts $exec
+        # extract termcmd
+        set first [string first {%terminal(} $runasroot]
+        set last [string first {)} $runasroot $first]
+        set termcmd [string range $runasroot "${first}+10" "${last}-1"]
+        set xtermscript [file join $tmpdir tkpacman-xterm.sh]
+        set cmdscript [file join $tmpdir tkpacman-cmd.sh]
+        # replace %terminal(...) with $xtermscript
+        set runasroot [string replace $runasroot $first $last $xtermscript]
+        set runasroot [string map [list %p $cmd] $runasroot]
+        set terminal [string map [list %t \"${title}\" %c $cmdscript] $terminal]
+        set termcmd [string map [list %p $cmd %close $close] $termcmd]
+        set xtermchan [open $xtermscript w]
+        chan puts $xtermchan "#!/bin/sh"
+        chan puts $xtermchan $terminal
+        chan close $xtermchan
+        file attributes $xtermscript -permissions 0700
+        set cmdchan [open $cmdscript w]
+        chan puts $cmdchan "#!/bin/sh"
+        chan puts $cmdchan $termcmd
+        chan close $cmdchan
+        file attributes $cmdscript -permissions 0700
+        set exec "exec $runasroot >@ stdout 2>@ stderr"
         if {[catch $exec error]} then {
-            set msg "Error executing '$exec'.\n\n$error\n\n[mc adviceTerm]"
-            tkp_message $msg $parent
-        } else {
-            # puts "$cmd: complete"
+            set msg "Error executing '$exec'.\n\n$error"
+            chan puts stderr $msg
         }
+        file delete $xtermscript
+        file delete $cmdscript
         return
     }
 }
 
 namespace eval comproc {
     proc browse {url parent} {
+        global tcl_platform
+        set user $tcl_platform(user)
+        if {$user eq {root}} then {
+            tkp_message [mc browserAsRoot] $parent
+            return
+        }
         set browser [tkpOptions getOption general browser]
         set exec [list exec $browser $url &]
         if {[catch $exec error]} then {
@@ -194,12 +216,16 @@ namespace eval comproc {
 }
 
 namespace eval comproc {
-    proc updateTxtWidget {txtWidget txt} {
+    proc updateTxtWidget {txtWidget txt image} {
         $txtWidget configure -state normal
         foreach tag [$txtWidget tag names] {
             $txtWidget tag delete $tag
         }
         $txtWidget delete 1.0 end
+        if {$image ne {}} then {
+            $txtWidget image create end -image $image -pady 5 -padx 5
+            $txtWidget insert end "\n"
+        }
         $txtWidget insert end $txt
         $txtWidget configure -state disabled
         return
@@ -238,7 +264,7 @@ namespace eval comproc {
 # Instance variables:
 #   - window: Tk pathname of main window
 #   - packlist: is an array with the following elements
-#       - packlist(list): the list of packages where ach item is a list of:
+#       - packlist(list): the list of packages where each item is a list of:
 #           $installed $name $description $version $groups $repo
 #         Depending on $packlist(mode) it is the list of available or installed packages.
 #       - packlist(mode): sync or query
@@ -284,11 +310,14 @@ oo::class create MainWin {
         set filter(ownedfile) {}
         set nrOfMarked 0
         set nrOfItems 0
-        my refreshPackagelist
+        #my refreshPackagelist
         wm title $window [mc tkPacman]
         wm iconphoto $window -default ::img::tkpacman_icon
         wm geometry $window [join [geometry::getSize main] {x}]
         my initWindow
+        # comproc updateTxtWidget $txtInfo [mc initPackList] {}
+        # update
+        my refreshPackagelist
         my refreshPackageBox
         set tpOnly [bindToplevelOnly $window <Destroy> [list [self object] destroy]]
         bind $tpOnly <Configure> {geometry::setSize main {%w %h}}
@@ -378,7 +407,7 @@ oo::define MainWin {
                         set installed 1
                     } else {
                         set installed 0
-                        puts "tkpacman: error parsing installed"
+                        chan puts stderr "tkpacman: error parsing installed"
                     }
                 } else {
                     set installed 0
@@ -391,6 +420,8 @@ oo::define MainWin {
             return [list $repo $name $version $groups $installed]
         }
         
+        comproc updateTxtWidget $txtInfo [mc initPackList] {}
+        update
         set cmd [list pacman --$packlist(mode) --search {}]
         set pacout [split [comproc runCmd $cmd] "\n"]
         set last [expr {[llength $pacout] - 1}]
@@ -404,7 +435,6 @@ oo::define MainWin {
         unset pacout
         set packlist(list) [lsort -index 1 $packlist(list)]
         set packlist(length) [llength $packlist(list)]
-        # puts $packlist(list)
     }
 }
 
@@ -438,7 +468,7 @@ oo::define MainWin {
         } elseif {$filter(mode) eq {explicit}} then {
             set cmd "pacman --query --quiet --explicit --unrequired"
         } elseif {$filter(mode) eq {upgrades}} then {
-            set cmd "pacman --sync --sysupgrade --print --print-format %n"
+            set cmd "pacman --query --quiet --upgrades"
         } elseif {$filter(mode) eq {foreign}} then {
             set cmd "pacman --query --quiet --foreign"
         } elseif {$filter(mode) eq {fileowner}} then {
@@ -533,7 +563,7 @@ oo::define MainWin {
                 set label [mc filterFileowner $filter(ownedfile)]
             }
         } else {
-            puts "refreshPackageBox: wrong packlist(mode) '$packlist(mode)'"
+            chan puts stderr "refreshPackageBox: wrong packlist(mode) '$packlist(mode)'"
             set label {}
         }
         $fBox configure -text $label
@@ -550,8 +580,10 @@ oo::define MainWin {
             $rbForeign state {!disabled}
             $rbFileOwner state {!disabled}
         }
-        if {($filter(mode) eq {upgrades}) && ($nrOfItems > 0)} then {
-            tkp_message [mc warningUpgrade] $window
+        if {$filter(mode) eq {upgrades}} then {
+            update
+            comproc updateTxtWidget $txtInfo [mc warningUpgrade] \
+                ::img::warning
         }
         return
     }
@@ -577,7 +609,7 @@ oo::define MainWin {
             } else {
                 set cmd "pacman --remove $oplist"
             }
-            comproc runAsRoot $cmd $window
+            comproc runAsRoot $cmd
             my refreshPackagelist
             if {$refreshBox} then {
                 my refreshPackageBox
@@ -592,7 +624,7 @@ oo::define MainWin {
         set item [$packageBox selection]
         set packname [lindex [$packageBox item $item -values] 0]
         set cmd [list pacman --$packlist(mode) --info $packname]
-        comproc updateTxtWidget $txtInfo [comproc runCmd $cmd]
+        comproc updateTxtWidget $txtInfo [comproc runCmd $cmd] {}
         comproc markURL $txtInfo $window
         return
     }
@@ -603,7 +635,7 @@ oo::define MainWin {
         set item [$packageBox selection]
         set packname [lindex [$packageBox item $item -values] 0]
         set cmd [list pacman --query --quiet --list $packname]
-        comproc updateTxtWidget $txtInfo [comproc runCmd $cmd]
+        comproc updateTxtWidget $txtInfo [comproc runCmd $cmd] {}
         return
     }
 }
@@ -819,7 +851,7 @@ oo::define MainWin {
 oo::define MainWin {
     method onRefreshDatabase {} {
         my unappliedChanges
-        comproc runAsRoot "pacman --sync --refresh" $window
+        comproc runAsRoot "pacman --sync --refresh"
         my refreshPackagelist
         my refreshPackageBox
         return
@@ -829,7 +861,7 @@ oo::define MainWin {
 oo::define MainWin {
     method onSysUpgrade {} {
         my unappliedChanges
-        comproc runAsRoot "pacman --sync --refresh --sysupgrade" $window
+        comproc runAsRoot "pacman --sync --refresh --sysupgrade"
         my refreshPackagelist
         my refreshPackageBox
         return
@@ -898,7 +930,7 @@ oo::define MainWin {
 oo::define MainWin {
     method cleanCache {} {
         set cmd "pacman --sync --clean --clean"
-        comproc runAsRoot $cmd $window
+        comproc runAsRoot $cmd
         return
     }
 }
@@ -977,9 +1009,9 @@ oo::define MainWin {
                 }
             }
             comproc updateTxtWidget $txtInfo [mc smallInfo \
-                $name $description $version $installed $groups $repo]
+                $name $description $version $installed $groups $repo] {}
         } else {
-            comproc updateTxtWidget $txtInfo {}
+            comproc updateTxtWidget $txtInfo {} {}
         }
         return
     }
@@ -1003,7 +1035,8 @@ oo::define MainWin {
         set txtInfo [text [appendToPath $fmText txtInfor] \
             -background white \
             -height 1 \
-            -width 1]
+            -width 1 \
+            -wrap word]
         set vsb [ttk::scrollbar [appendToPath $fmText vsb] \
             -command [list $txtInfo yview]]
         $txtInfo configure -yscrollcommand [list $vsb set]
@@ -1244,7 +1277,7 @@ oo::class create ImportWin {
             if {$option eq {-parent}} then {
                 set parent $value
             } else {
-                puts "ImportWim '$option': unknown option"
+                chan puts stderr "ImportWim '$option': unknown option"
             }
         }
         set window [toplevel [appendToPath $parent \
@@ -1304,7 +1337,7 @@ oo::define ImportWin {
         # text widget
         set fInfo [ttk::frame ${window}.fInfo]
         set txtInfo [text ${fInfo}.txtInfo \
-            -background white -width 1 -height 1]
+            -background white -width 1 -height 1 -wrap word]
         set vsbInfo [ttk::scrollbar ${fInfo}.vsb -orient vertical \
             -command [list $txtInfo yview]]
         $txtInfo configure -yscrollcommand [list $vsbInfo set]
@@ -1341,7 +1374,7 @@ oo::define ImportWin {
 oo::define ImportWin {
     method onFiles {} {
         set cmd [list pacman --query --quiet --list --file $filename]
-        comproc updateTxtWidget $txtInfo [comproc runCmd $cmd]
+        comproc updateTxtWidget $txtInfo [comproc runCmd $cmd] {}
         return
     }
 }
@@ -1349,7 +1382,7 @@ oo::define ImportWin {
 oo::define ImportWin {
     method onInfo {} {
         set cmd [list pacman --query --info --file $filename]
-        comproc updateTxtWidget $txtInfo [comproc runCmd $cmd]
+        comproc updateTxtWidget $txtInfo [comproc runCmd $cmd] {}
         comproc markURL $txtInfo $window
         return
     }
@@ -1358,12 +1391,11 @@ oo::define ImportWin {
 oo::define ImportWin {
     method onInstall {} {
         set cmd "pacman --upgrade $filename"
-        comproc runAsRoot $cmd $window
+        comproc runAsRoot $cmd
         return
     }
 }
 
-
 ## Create the one and only MainWin object
-
 set tkpObject [MainWin new]
+
