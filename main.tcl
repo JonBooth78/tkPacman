@@ -691,23 +691,64 @@ oo::define MainWin {
 }
 
 oo::define MainWin {
+    method applyAndUpdatePacklistFor {operation} {        
+
+        if {$nrOfMarked($operation) > 0} then {
+
+            set cmd "pacman --remove $marklist($operation)"
+            comproc runAsRoot $cmd $writeErr
+
+            set marklist($operation) [lsort $marklist($operation)]
+
+            incr nrOfMarked(total) -$nrOfMarked($operation)
+            set nrOfMarked($operation) 0
+
+            if {$operation eq {remove}} {
+                set packlist(mode) query
+            } else {
+                set packlist(mode) sync
+            }
+            
+            my refreshPackagelist
+
+            set newmarklist {}
+            puts "resyncing mark list for $operation $packlist(mode)"
+            foreach package $packlist(list) {
+                set name [lindex $package 1]
+
+#                puts "considering $name for marklist $operation"
+                if {[lsearch -sorted $marklist($operation) $name] >= 0} then {
+                    puts "keeping $name in $operation"
+                    lappend newmarklist $name
+                    incr nrOfMarked(total) 1
+                    incr nrOfMarked($operation) 1
+                }
+            }
+
+            set marklist($operation) $newmarklist
+        }
+        return
+    }
+}
+
+oo::define MainWin {
     method onApply {refreshBox} {
         if {$nrOfMarked(total) > 0} then {
-            if {$nrOfMarked(remove) > 0} then {
-                set cmd "pacman --remove $marklist(remove)"
-                comproc runAsRoot $cmd $writeErr
+
+            if {$packlist(mode) eq {query} } then {
+                my applyAndUpdatePacklistFor install
+                my applyAndUpdatePacklistFor remove
+            } else {
+                my applyAndUpdatePacklistFor remove
+                my applyAndUpdatePacklistFor install
             }
-            if {$nrOfMarked(install) > 0} then {
-                set cmd "pacman --sync $marklist(install)"
-                comproc runAsRoot $cmd $writeErr
+
+            if {$nrOfMarked(total) > 0} then {
+                $btnApply state {!disabled}
+            } else {
+                $btnApply state disabled
             }
-            set marklist(install) {}
-            set marklist(remove) {}
-            set nrOfMarked(total) 0
-            set nrOfMarked(install) 0
-            set nrOfMarked(remove) 0
-            $btnApply state disabled
-            my refreshPackagelist
+
             if {$refreshBox} then {
                 my refreshPackageBox
             }
