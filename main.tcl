@@ -461,15 +461,13 @@ oo::define MainWin {
                     set groups {}
                 }
                 if {[string index $first $cursor] eq "\["} then {
-                    incr cursor
-                    set separator [string first "\]" $first $cursor]
-                    set installed [string range $first $cursor $separator-1]
-                    if {[string range $installed 0 8] eq "installed"} then {
-                        set installed 1
-                    } else {
-                        set installed 0
-                        chan puts $writeErr "tkpacman: error parsing installed"
-                    }
+                    # Ticket number 5.
+                    # We assume that the package is installed when there
+                    # is a field starting with "[". I hope that this is
+                    # correct. At any rate, we cannot rely on the word
+                    # between "[" and "]", as was the case in versions before
+                    # 1.3.0, because that word may be different for each locale.
+                    set installed 1
                 } else {
                     set installed 0
                 }
@@ -1376,6 +1374,8 @@ oo::define MainWin {
         set btnApply [defineButton [appendToPath $fButtons btnApply] \
             $window btnApply [list [self object] onApply 1]]
         $btnApply configure -image ::img::apply -compound left
+        # btnApply mustbe disabled initially.
+        $btnApply state disabled
         set btnInstallFile [defineButton [appendToPath $fButtons btnInstallFile] \
             $window btnInstallFile [list [self object] onImport]]
         $btnInstallFile configure -image ::img::box -compound left
