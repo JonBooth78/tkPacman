@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=tkPacman
+Comment=Graphical user interface for pacman
+Exec=/usr/bin/tclsh /usr/share/tkpacman/main.tcl
+Icon=/usr/share/tkpacman/icons/tkpacman-icon.png
+Path=
+Terminal=false
+Categories=System

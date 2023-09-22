@@ -1,0 +1,4 @@
+#define arrow_right_width 5
+#define arrow_right_height 9
+static unsigned char arrow_right_bits[] = {
+   0x01, 0x03, 0x07, 0x0f, 0x1f, 0x0f, 0x07, 0x03, 0x01 };
