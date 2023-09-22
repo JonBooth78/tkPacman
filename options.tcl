@@ -7,13 +7,14 @@
 
 namespace eval tkpOptions {
     variable optionStructure [list \
-        general [list browser terminal runasroot tmpdir] \
+        general [list browser terminal runasroot tmpdir allerrors] \
         geometry [list main text import] \
         fileselection [list lastdir]]
     variable optionDict
     variable optionArray
     variable window
     variable terminalList
+    variable runasrootList
     set optionDict {}
     dict for {type list} $tkpOptions::optionStructure {
         set subDict {}
@@ -24,12 +25,12 @@ namespace eval tkpOptions {
     }
     set window {}
     set terminalList [list \
-        {xterm -title %t -e %c} \
         {lxterminal --title=%t --command=%c} \
-        {vte --name=%t --command=%c} \
         {xfce4-terminal --disable-server --title=%t --command=%c} \
         {konsole --nofork --caption %t -e %c} \
-        {roxterm --title=%t --execute %c}]
+        {roxterm --title=%t --execute %c} \
+        {vte --name=%t --command=%c} \
+        {xterm -title %t -e %c}]
     set runasrootList [list \
         {%terminal(echo "%p" ; su --command="%p" ; read -p "%close")} \
         {sudo --askpass %terminal(echo "%p" ; %p ; read -p "%close")} \
@@ -116,6 +117,8 @@ namespace eval tkpOptions {
         variable optionDict
         variable optionArray
         variable window
+        variable terminalList
+        variable runasrootList
         variable ::config::defaultBrowser
 
         switch -- $option {
@@ -123,13 +126,23 @@ namespace eval tkpOptions {
                 set value {/usr/bin/xdg-open}
             }
             "terminal" {
-                set value {lxterminal --title=%t --command=%c}
+                set value [lindex $terminalList 0]
+                foreach terminal $terminalList {
+                    set termexec [lindex $terminal 0]
+                    if {![catch {exec which $termexec} msg]} then {
+                        set value $terminal
+                        break
+                    }
+                }
             }
             "runasroot" {
-                set value {%terminal(echo "%p" ; su --command="%p" ; read -p "%close")}
+                set value [lindex $runasrootList 0]
             }
             "tmpdir" {
                 set value {/tmp}
+            }
+            "allerrors" {
+                set value 0
             }
             default {
                 set value {}
@@ -262,6 +275,10 @@ namespace eval tkpOptions {
                 set control [ttk::combobox ${frm}.con$idx \
                     -textvariable tkpOptions::optionArray($tab,$option) \
                     -values $tkpOptions::terminalList]
+            } elseif {$option eq {allerrors}} then {
+                set control [ttk::checkbutton ${frm}.con$idx \
+                    -variable tkpOptions::optionArray($tab,$option) \
+                    -onvalue 1 -offvalue 0]
             } else {
                 set control [entry ${frm}.con$idx \
                     -textvariable tkpOptions::optionArray($tab,$option)]

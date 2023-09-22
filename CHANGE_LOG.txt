@@ -1,3 +1,12 @@
+Version 1.3.0 (2013-11-2)
+  - Important error messages are not printed to stderr, but are stored
+    in internal memory and can be viewed by pressing the 'Errors' button
+    on the toolbar. Additionally, the 'Errors' button's icon changes
+    from gray to red when new errors have occurred. This has been done
+    to help new users who propably don't know what is happening when
+    the 'terminal' or 'runasroot' options are calling uninstalled
+    programs.
+
 Version 1.2.0 (2013-10-30)
   - tkPacman now remembers packages marked for installation or
     removal across filter changes. Only when the user changes from

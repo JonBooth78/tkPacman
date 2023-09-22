@@ -120,6 +120,9 @@ btnSysUpgrade
 {System
 &Upgrade}
 
+btnError
+{Errors}
+
 rbAvailable
 {&Available packages}
 
@@ -230,9 +233,15 @@ rbFileOwner
 {File owner}
 
 adviceTerm
-{You may need to install a terminal emulator program such as 'xterm' or 'lxterminal'.
+{There was a problem with running a pacman command as root.
 
-Or you may need to modify the option 'terminal'. See Tools -> Options -> terminal.}
+This could mean that you have to modify the 'terminal' or 'runasroot'
+options (see menu Tools -> Options), or that you have to install a
+package required by the commands called in the 'terminal' or 'runasroot'
+options.
+
+The information above may help you to solve this problem.
+}
 
 nrOfPackages
 {Number of packages}
@@ -356,6 +365,9 @@ The 'Upgrades' filter is mainly meant to selectively upgrade some packages.}
 browserAsRoot
 {tkPacman refuses to start browser as 'root'}
 
+errorLog
+{tkPacman - Error messages}
+
 }
 
 # import window
@@ -408,11 +420,11 @@ Using the drop down box, you can choose between the following terminal
 invocation commands:
 
     lxterminal --title=%t --command=%c
-    xterm -title %t -e %c
-    vte --name=%t --command=%c
     xfce4-terminal --disable-server --title=%t --command=%c
     konsole --nofork --caption %t -e %c
-    roxterminal --title=%t --execute %c
+    roxterm --title=%t --execute %c
+    vte --name=%t --command=%c
+    xterm -title %t -e %c
 
 On invocation, tkPacman replaces %t with an appropriate title for the
 terminal window and %c with the command to execute in the terminal.
@@ -420,7 +432,8 @@ terminal window and %c with the command to execute in the terminal.
 These commands are known to work. If you would like to use another
 terminal, you can type a command instead of selecting one of these.
 
-lxterminal is the default because it is both nice and lightweight.
+The default is the first one of the list above that is actually
+installed.
 
 I have tried to get gnome-terminal working, but it is always forking
 to the background, which makes it impossible to use it in the context
@@ -459,7 +472,7 @@ During that time you can run another pacman command without having to
 type your password again. sudo normally requires you to type your own
 password instead of the 'root' password.
 
-Choice 3 requires the package 'gksu'. This can keep the 'root' password
+Choice 3 requires the package 'gksu'. gksu can keep the 'root' password
 during the session or even store it in the gnome keyring. This minimizes
 the number of times you have to type the 'root' password, but it is
 less secure, because all commands can be run as root for as long as you
@@ -472,6 +485,12 @@ These commands are known to work. If you would like to use another
 runasroot, you can type a command instead of selecting one of these.
 
 Default: the first one from the above list.}
+
+optHelp_allerrors
+{This option determines whether tkPacman shows all errors or only
+the most relevant ones.
+
+Default: Not allerrors}
 
 optPasteFilename
 {&Paste filename}

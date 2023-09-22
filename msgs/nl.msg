@@ -122,6 +122,9 @@ btnSysUpgrade
 {Systeem
 &Opwaarderen}
 
+btnError
+{Fouten}
+
 rbAvailable
 {Be&schikbare pakketten}
 
@@ -235,9 +238,15 @@ rbFileOwner
 {Eigenaar bestand}
 
 adviceTerm
-{Misschien moet u nog een terminal emulator programma zoals 'xterm' of'lxterminal' installeren.
+{Er was een probleem met het uitvoeren van een pacman commando als root.
 
-Of misschien moet u de optie 'terminal' nog aanpassen. Zie Extra -> Opties -> terminal.}
+Dit zou kunnen betekenen dat u de opties 'terminal' of 'runasroot'
+(zie menu Extra -> Opties) moet aanpassen of dat u nog een pakket moet
+installeren om een commando te kunnen uitvoeren dat opgeroepen wordt
+door de 'terminal' of 'runasroot' opties.
+
+De bovenstaande informatie kan u helpen dit probleem op te lossen.
+}
 
 nrOfPackages
 {Aantal pakketten}
@@ -361,6 +370,8 @@ De filter 'Opwaarderingen' is vooral bedoeld om selectief bepaalde pakketten op 
 browserAsRoot
 {tkPacman weigert de web browser uit te voeren als root}
 
+errorLog
+{tkPacman - Foutberichten}
 
 }
 
@@ -414,11 +425,11 @@ De selectie dialoog laat u keizen uit de volgende commando's voor
 het oproepen van een terminal programma:
 
     lxterminal --title=%t --command=%c
-    xterm -title %t -e %c
-    vte --name=%t --command=%c
     xfce4-terminal --disable-server --title=%t --command=%c
     konsole --nofork --caption %t -e %c
-    roxterminal --title=%t --execute %c
+    roxterm --title=%t --execute %c
+    vte --name=%t --command=%c
+    xterm -title %t -e %c
 
 Bij het uitvoeren van deze commando's vervangt tkPacman %t door een
 geschikte titel voor het terminal venster en %c door het commando dat
@@ -428,8 +439,8 @@ Van deze commando's is geweten dat ze werken. Als u liever een ander
 terminal programma gebruikt, kunt u zelf een commando typen in plaats
 van er een te kiezen uit de lijst.
 
-lxterminal is de standaard keuze omdat deze zowel mooi is als weinig
-afhankelijkheden heeft.
+De standaard keuze is de eerste van de bovenstaande keuzelijst die
+werkelijk geïnstalleerd is.
 
 Ik heb ook geprobeerd gnome-terminal te laten werken, maar die
 begint altijd op de achtergrond te lopen waardoor deze niet bruikbaar
@@ -460,7 +471,7 @@ Door de drop down box te gebruiken, kunt u kiezen uit de volgende
  3. gksu --description pacman %terminal(echo "%p" ; %p ; read -p "%close")
  4. kdesu %terminal(echo "%p" ; %p ; read -p "%close")
 
-Keuze 1 is de standaard keuze. Ze veresit dat u het 'root' wachtwoord
+Keuze 1 is de standaard keuze. Ze vereist dat u het 'root' wachtwoord
 invoert bij elk pacman commando.
 
 Keuze 2 is de aanbevolen keuze. Ze vereist het pakket 'sudo' en
@@ -470,7 +481,7 @@ minuten). Gedurende deze tijd kunt u een ander pacman commando uitvoeren
 zonder uw wachtwoord te moeten invoeren. Normaal vereist sudo dat u uw
 eigen wachtwoord invoert in plaats van het 'root' wachtwoord.
 
-Keuze 3 vereist het pakket 'gksu'. Dit kan het 'root' wachtwoord
+Keuze 3 vereist het pakket 'gksu'. gksu kan het 'root' wachtwoord
 onthouden gedurende de sessie of zelfs opslaan in de gnome keyring.
 Deze keuze minimaliseert het aantal keren dat u het 'root' wachtwoord
 moet invoeren, maar ze is minder veilig, omdat alle commando's
@@ -486,6 +497,11 @@ van een te kiezen uit de lijst.
 
 Standaard: Het eerste commando van de lijst.}
 
+optHelp_allerrors
+{Deze optie bepaalt of tkPacman alle fouten toont of alleen de meest
+relevante.
+
+Standaard: Niet alle fouten}
 
 optPasteFilename
 {Bestandsnaam &plakken}

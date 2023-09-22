@@ -64,8 +64,12 @@ Defaults timestamp_timeout = 10
 you can set the time that sudo caches your password to 10 minutes instead of the default 5 minutes.
 
 
-<b>Problems with setting 'terminal' and 'runasroot' options</b>
+<b>Problems with running a pacman command as root</b>
 
-If you have problems with setting the 'terminal' or 'runasroot' options, start tkPacman from a terminal window by typing 'tkpacman' instead of starting it from the desktop menu.
+To run pacman commands as root, tkPacman needs a terminal emulation program and an authentication program.
 
-tkPacman will then display error and warning messages on the terminal which may help you to solve the problems.
+The options 'terminal' and 'runasroot' (see menu Tools -> Options) let you choose which tkPacman should use.
+
+If tkPacman detects errors when trying to execute a pacman command as root, it logs an error message that you can display by pressing the 'Errors' button on the toolbar.
+
+This will probably give you enough information to solve the problem.

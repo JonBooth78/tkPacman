@@ -758,7 +758,7 @@ oo::define TextEdit {
             callback {
                 eval $callback
                 # It is up to the creator of the object to destroy it
-                # e.g. by calling method getText
+                # e.g. by calling method getText or destroy
             }
             default {
                 # wait was called, which will destroy the object.
@@ -1009,6 +1009,8 @@ oo::define TextEdit {
         } else {
             $txtWidget insert end $text
         }
+        $txtWidget mark set insert end
+        $txtWidget see end
         if {$readOnly} then {
             $txtWidget configure -state disabled
         }

@@ -4,7 +4,7 @@ Door op de radioknoppen juist onder de werkbalk te drukken, kunt u afwisselen tu
 
 Beschikbare pakketten kunnen opgehaald worden van de software depots (repositories) die gedefinieerd zijn in /etc/pacman.conf.
 
-Als 'Beshikbare pakketten' getoond worden, kunt u pakketten aanstippen voor installatie.
+Als 'Beschikbare pakketten' getoond worden, kunt u pakketten aanstippen voor installatie.
 
 Als 'Geïnstalleerde pakketten' getoond worden, kunt u pakketten aanstippen vooor verwijdering.
 
@@ -35,7 +35,7 @@ Hierbij wordt de database gesynchroniseerd en worden alle geïnstalleerde pakket
 
 <b>'sudo' configureren</b>
 
-Om 'sudo' te kunnen gebruiken in de 'runasroot' optie, kan het nodig zijn 'sudo' te configueren.
+Om 'sudo' te kunnen gebruiken in de 'runasroot' optie, kan het nodig zijn 'sudo' te configureren.
 
 Er zijn meerdere manieren om 'sudo' te configureren. Maar hier is een manier die gewoonlijk werkt.
 
@@ -68,8 +68,12 @@ Defaults timestamp_timeout = 10
 toe te voegen, kunt u de tijd dat 'sudo' uw wachtwoord onthoudt op 10 minuten zetten in plaats van de standaard 5 minuten.
 
 
-<b>Problemen met instellen van 'terminal' en 'runasroot' opties</b>
+<b>Problemen met het uitvoeren van pacman commando's als root.</b>
 
-Als u problemen hebt met het instellen van de 'terminal' of 'runasroot' opties, start u tkPacman vanaf een terminal venster door het typen van het commando 'tkpacman' in plaats van het bureaublad menu te gebruiken.
+Om pacman commando's uit te voeren als root, gebruikt tkPacman een terminal emulatie programma en een authenticatie programma.
 
-tkPacman zal dan fouten en waarschuwingen op de terminal tonen die u kunnen helpen het probleem op te lossen.
+De opties 'terminal' en 'runasroot' (zie menu Extra -> Opties) laten u kiezen welke tkPacman moet gebruiken.
+
+Als tkPacman fouten ontdekt bij het uitvoeren van pacman commando's als root, genereert hij een foutbericht dat u kunt bekijken door op de knop 'Fouten' van de werkbalk te drukken.
+
+Dit zal u waarschijnlijk helpen het probleem op te lossen.

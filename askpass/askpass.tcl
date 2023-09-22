@@ -30,14 +30,14 @@ proc appendBindTag {widget newTag} {
 
 proc onDestroy {} {
     bind topAskpass <Destroy> {}
-    exit 2
+    exit
 }
 
 proc onOK {} {
     global password
     chan puts stdout $password
     bind topAskpass <Destroy> {}
-    exit 0
+    exit
 }
 
 wm title {.} [mc askPassword]
