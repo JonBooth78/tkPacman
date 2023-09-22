@@ -38,18 +38,23 @@ for more details.
 
 You can get a "partial upgrade" if you call 'pacman --sync --refresh' wihtout '--sysupgrade' and then install one or more packages with 'pacman --sync pkg1 pkg2 ...'.
 
-Older versions of tkPacman (<= 1.5.0), had a button called 'Resync Database' which called 'pacman --sync --refresh'. Since version 1.6.0, that button has been replaced with 'Check Upgrades' (see below).
+Older versions of tkPacman (<= 1.5.0), had a button called 'Resync Database' which called 'pacman --sync --refresh'. Since version 1.6.0, that button has been replaced with 'List Upgrades' (see below).
 
 However, you can still get a "partial upgrade" if you answer "n" to pacman's question "Proceed with installation? [Y/n]" after pressing 'System Upgrade' and then install one or more packages with 'pacman --sync pkg1 pkg2 ...'.
 
 You can also still get a "partial upgrade" if you have set 'IgnorePkg' or 'IgnoreGroup' in /etc/pacman.conf.
 
 
-<b>Check Upgrades</b>
+<b>List Upgrades</b>
 
-By pressing the 'Check Upgrades' button, the script 'checkupdates', which is part of the 'pacman' package, is executed.
+By pressing the 'List Upgrades' button, a package database is made in a temporary directory (/tmp/tkpacman).
 
-This script displays the list of upgradable packages but leaves the package database untouched. It can be used without increasing the risk of "partial upgrades".
+The local database (/tmp/tkpacman/local) is made as a symbolic link to the real local database (/var/lib/pacman/local).
+
+The 'sync' database (/tmp/tkpacman/sync) is synchronised with the on line software repositories. The real 'sync' database (/var/lib/pacman/sync) is untouched by this so that the danger for partial upgrades is not increased.
+
+Then the list of upgradable packages is displayed, based on the package database in the temporary directory (/tmp/tkpacman).
+
 
 
 <b>Configuring 'sudo'</b>

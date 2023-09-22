@@ -38,18 +38,22 @@ voor meer details.
 
 Je kunt een "gedeeltelijke opwaardering" krijgen door 'pacman --sync --refresh' uit te voeren zonder '--sysupgrade' en dan nieuwe pakketten te installeren met 'pacman --sync pkg1 pkg2 ...'.
 
-Oudere versies van tkPacman (<= 1.5.0) hadden een knop 'Database Synchroniseren' die 'pacman --sync --refresh' opriep. Vanaf versie 1.6.0. is deze knop vervangen door 'Check opwaarderingen' (zie hieronder).
+Oudere versies van tkPacman (<= 1.5.0) hadden een knop 'Database Synchroniseren' die 'pacman --sync --refresh' opriep. Vanaf versie 1.6.0. is deze knop vervangen door 'Lijst opwaarderingen' (zie hieronder).
 
 Je kunt nog altijd een "gedeeltelijke opwaardering" krijgen als je "n" antwoordt op de vraag "Doorgaan met de installatie? [J/n]" nadat je op 'Systeem opwaarderen' hebt gedrukt en daarna nieuwe pakketten installeert met 'pacman --sync pkg1 pkg2 ...'.
 
 Je kunt ook nog een "gedeeltelijke opwaardering" krijgen als je 'IgnorePkg' of 'IgnoreGroup' hebt gezet in /etc/pacman.conf.
 
 
-<b>Check Upgrades</b>
+<b>Lijst Opwaarderingen</b>
 
-Door op de knop 'Check Upgrades' te drukken, wordt het script "checkupdates" uitgevoerd dat een onderdeel is van het pacman pakket.
+Door op de knop 'Lijst Opwaarderingen' te drukken, wordt een pakketten database gemaakt in een tijdelijke map (/tmp/tkpacman).
 
-Dit script toont de lijst van opwaardeerbare pakketten maar laat de pakketten database ongemoeid. Het kan gebruikt worden zonder het risico op "gedeeltelijke opwaarderingen" te verhogen.
+De lokale database (/tmp/tkpacman/local) wordt hierin een symbolische koppeling naar de echte lokale database (/var/lib/pacman/local).
+
+De 'sync' database (/tmp/tkpacman/sync) wordt gesynchroniseerd met de online software archieven. Hierbij wordt de echte 'sync' database (/var/lib/pacman/sync) ongemoeid gelaten zodat het gevaar voor gedeeltelijke opwaarderingen niet wordt verhoogd.
+
+Daarna wordt de lijst van opwaardeerbare pakketten getoond op basis van de database in de tijdelijke map.
 
 
 <b>'sudo' configureren</b>

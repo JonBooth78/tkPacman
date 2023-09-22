@@ -1,3 +1,17 @@
+Version 1.6.1 (2015-10-13)
+  - The button "Check Upgrades" was renamed to "List Upgrades".
+  - tkPacman no longer calls the pacman script "checkupdates" but
+    provides the same functionality by setting up a temporary copy of the
+    package database at /tmp/tkpacman, where /tmp/tkpacman/local is a
+    symbolic link to /var/lib/pacman/local, and by calling:
+        fakeroot -- pacman --sync --refresh --dbpath /tmp/tkpacman
+        pacman --query --upgrades --dbpath /tmp/tkpacman
+    This gives the user more feedback on the progress than 'checkupdates'
+    which hides all feedback on the progress from pacman.
+  - The parsing of /etc/pacman.conf was completely rewritten. Up to now
+    it is used by tkPacman to get the list of sofware repositories and
+    the value of DBPath (default /var/lib/pacman).
+
 Version 1.6.0 (2015-09-27)
   - The button "Resync Database", which called 'pacman --sync --refresh',
     has been replaced with a button "Check Upgrades", which calls

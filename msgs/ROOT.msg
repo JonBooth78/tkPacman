@@ -116,7 +116,7 @@ btnWebsite
 {&Website}
 
 btnCheckUp
-{Chec&k
+{List
 Upgrades}
 
 btnSysUpgrade
@@ -387,6 +387,9 @@ whichClean
 helpClean
 {Do you want to remove all packages from the cache, or only the pacakges that are no longer installed?}
 
+DBPathWrong
+{%1$s does not exist. Check /etc/pacman.conf}
+
 }
 
 # import window
@@ -524,12 +527,19 @@ optSelectbrowser
 {Select browser}
 
 optSelecttmpdir
-{Select temporary directory}
+{Select temporary directory.}
 
 optHelp_tmpdir
-{When tkPacman executes a pacman command as root, it writes temporary
-script files 'tkpacman-xterm.sh' and 'tkpacman-cmd.sh' to the directory
-defined by this option.}
+{tkPacman occasionally makes temporary scripts in the directory defined
+by 'tmpdir'.
+
+tkPacman also uses this directory to make a copy of the package database
+for the "List Upgrades" feature.
+
+Some features of tkPacman may not work if the 'tmpdir' pathname contains
+spaces.
+
+Default: /tmp}
 
 }
 

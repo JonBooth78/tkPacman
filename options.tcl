@@ -1,5 +1,116 @@
 # options.tcl
 
+namespace eval pacmanOptions {
+    # This namespace encapsulates all variable and procedures related to
+    # the pacman options as stored in /etc/pacman.conf. pacmanDict is a
+    # dictionary of dictionaries. The outer dictionary uses the section
+    # names (options, core, extra, community ...) as keys and the section
+    # bodies as values. Each section body is itself a dictionary with
+    # what comes before the '=' as key, and the rest of the line as
+    # value. If there is no '=' in the line, the empty string {} is used
+    # as value.
+    variable pacmanDict {}
+    namespace ensemble create -subcommands {initOptions getOption getRepolist}
+}
+
+namespace eval pacmanOptions {
+    # This procedure reads /etc/pacman.conf and populates pacmanDict.
+    proc initOptions {} {
+        variable pacmanDict
+        if {![catch {open "/etc/pacman.conf" r} confchan]} then {
+            set pacmanConf [split [chan read $confchan] "\n"]
+            chan close $confchan
+            # remove all comments and empty lines
+            set index 0
+            foreach line $pacmanConf {
+                # remove all empty space before and after line
+                set line [string trim $line]
+                if {[string length $line] == 0} then {
+                    # empty line, remove it
+                    set pacmanConf [lreplace $pacmanConf $index $index]
+                    incr index -1
+                } else {
+                    set hash [string first "#" $line 0]
+                    if {$hash == 0} then {
+                        # first char of line is "#" --> whole line is comment,
+                        # remove it
+                        set pacmanConf [lreplace $pacmanConf $index $index]
+                        incr index -1
+                    } elseif {$hash > 0} then {
+                        # line contains comment, remove comment
+                        set line [string replace $line $hash end ""]
+                        set pacmanConf [lreplace $pacmanConf $index $index $line]
+                    } else {
+                        # no comments and not empty, but line may be trimmed -->
+                        # it must be replaced nevertheless.
+                        set pacmanConf [lreplace $pacmanConf $index $index $line]
+                    }
+                }
+                incr index
+            }
+        } else {
+            set pacmanConf {}
+        }
+        set pacmanDict {}
+        set section {}
+        set body {}
+        foreach line $pacmanConf {
+            if {[string index $line 0] eq {[}} then {
+                # new section --> append accumulated lines
+                # to previous section
+                if {$section ne {}} then {
+                    # There is a previous section
+                    dict append pacmanDict $section $body
+                    set body {}
+                }
+                set end [string first {]} $line]
+                set section [string range $line 1 ${end}-1]
+            } else {
+                # section continues. Append line to body
+                set line [split $line {=}]
+                set key [string trim [lindex $line 0]]
+                if {[llength $line] == 1} then {
+                    set value {}
+                } else {
+                    set value [string trim [lindex $line 1]]
+                }
+                dict append body $key $value
+            }
+        }
+        if {$section ne {}} then {
+            dict append pacmanDict $section $body
+        }
+        # puts $pacmanDict
+        return
+    }
+}
+
+namespace eval pacmanOptions {
+    proc getOption {section option} {
+        variable pacmanDict
+        if {[dict exists $pacmanDict $section $option]} then {
+            set value [dict get $pacmanDict $section $option]
+        } else {
+            set value {}
+        }
+        return $value
+    }
+}
+
+namespace eval pacmanOptions {
+    proc getRepolist {} {
+        variable pacmanDict
+        set repolist {}
+        foreach key [dict keys $pacmanDict] {
+            if {$key ne {options}} then {
+                lappend repolist $key
+            }
+        }
+        return $repolist
+    }
+}
+
+
 ##
 # namespace tkpOptions
 #   This namespace encapsulates all variables and procedures

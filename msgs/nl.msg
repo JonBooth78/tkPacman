@@ -118,7 +118,7 @@ btnWebsite
 {&Website}
 
 btnCheckUp
-{&Check
+{Lijst
 Opwaarderingen}
 
 btnSysUpgrade
@@ -392,6 +392,8 @@ whichClean
 helpClean
 {Wilt u alle pakketten verwijderen uit de cache of alleen de pakketten die niet meer geïnstalleerd zijn?}
 
+DBPathWrong
+{%1$s bestaat niet. Controleer /etc/pacman.conf}
 
 }
 
@@ -540,9 +542,16 @@ optSelecttmpdir
 {Kies tijdelijke map}
 
 optHelp_tmpdir
-{Wanneer tkPacman een pacman commando uitvoert als root maakt het
-twee tijdelijke scripts aan, 'tkpacman-xterm.sh' en 'tkpacman-cmd.sh', in
-de map bepaald door deze optie.}
+{tkPacman maakt soms tijdelijke scripts aan in de map gefinieerd door
+'tmpdir'.
+
+tkPacman gebruikt deze map ook om een kopie te maken van de pakketten-
+database voor de functie "Lijst Opwaarderingen".
+
+Sommige functies van tkPacman werken niet als de 'tmpdir' padnaam spaties
+bevat.
+
+Standaard: /tmp}
 
 }
 
