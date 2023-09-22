@@ -3,7 +3,7 @@
 ##
 # namespace tkpOptions
 #   This namespace encapsulates all variables and procedures
-#   for handling the options of postsqlforms.
+#   for handling the options of tkPacman.
 
 namespace eval tkpOptions {
     variable optionStructure [list \
@@ -27,11 +27,14 @@ namespace eval tkpOptions {
         {xterm -title %t -e %c} \
         {lxterminal --title=%t --command=%c} \
         {vte --name=%t --command=%c} \
+        {xfce4-terminal --disable-server --title=%t --command=%c} \
+        {konsole --nofork --caption %t -e %c} \
         {roxterm --title=%t --execute %c}]
     set runasrootList [list \
         {%terminal(echo "%p" ; su --command="%p" ; read -p "%close")} \
         {sudo --askpass %terminal(echo "%p" ; %p ; read -p "%close")} \
-        {gksu --description pacman %terminal(echo "%p" ; %p ; read -p "%close")}]
+        {gksu --description pacman %terminal(echo "%p" ; %p ; read -p "%close")} \
+        {kdesu %terminal(echo "%p" ; %p ; read -p "%close")}]
     namespace ensemble create -subcommands [list getDefault \
         getOption initOptions saveOptions setOption showWindow]
 }
@@ -271,7 +274,7 @@ namespace eval tkpOptions {
             if {$idx == 0} then {
                 focus $control
             }
-            if {$option in {browser}} then {
+            if {$option in {browser tmpdir}} then {
                 set btnSelect [ttk::button ${frm}.sel$idx \
                     -image ::img::arrow_down \
                     -takefocus 0 \
@@ -407,16 +410,23 @@ namespace eval tkpOptions {
         global env
         global tcl_platform
         if {$option in {browser}} then {
-            set allFiles [list "All files" [list "*"]]
-            set filetypes [list $allFiles]
             set initialdir {/usr/bin}
             set fs [FileSelection new -parent $window \
                 -directory $initialdir \
-                -filetypes $filetypes \
                 -title [mc optSelect$option]]
             set filename [$fs wait]
             if {$filename ne {}} then {
                 set optionArray($type,$option) $filename
+            }
+        } elseif {$option in {tmpdir}} then {
+            set initialdir {/tmp}
+            set fs [FileSelection new -parent $window \
+                -directory $initialdir \
+                -title [mc optSelect$option] \
+                -dironly 1]
+            set dirname [$fs wait]
+            if {$dirname ne {}} then {
+                set optionArray($type,$option) $dirname
             }
         }
         return

@@ -68,6 +68,9 @@ mnuDecrFont
 mnuHelp
 {&Help}
 
+mnuHelpFile
+{&Display help}
+
 mnuLicense
 {&License}
 
@@ -214,6 +217,9 @@ rbExplicit
 rbFilterOff
 {&Off}
 
+rbPending
+{Marked}
+
 rbUpgrades
 {Upgrades}
 
@@ -278,6 +284,12 @@ filterExplicit
 
 filters
 {Filters}
+
+filterPendingInstallation
+{All packages marked for installation}
+
+filterPendingRemoval
+{All packages marked for removal}
 
 filterUpgrades
 {Available upgrades}
@@ -398,6 +410,8 @@ invocation commands:
     lxterminal --title=%t --command=%c
     xterm -title %t -e %c
     vte --name=%t --command=%c
+    xfce4-terminal --disable-server --title=%t --command=%c
+    konsole --nofork --caption %t -e %c
     roxterminal --title=%t --execute %c
 
 On invocation, tkPacman replaces %t with an appropriate title for the
@@ -408,9 +422,9 @@ terminal, you can type a command instead of selecting one of these.
 
 lxterminal is the default because it is both nice and lightweight.
 
-I have tried the more sofisticated terminals like gnome-terminal,
-konsole and xfce4-terminal, but I could not get them to work properly
-in the context of tkPacman.}
+I have tried to get gnome-terminal working, but it is always forking
+to the background, which makes it impossible to use it in the context
+of tkPacman.}
 
 optHelp_runasroot {
 The command that tkPacman should use to execute pacman commands as root.
@@ -433,6 +447,7 @@ commands:
  1. %terminal(echo "%p" ; su --command="%p" ; read -p "%close")
  2. sudo --askpass %terminal(echo "%p" ; %p ; read -p "%close")
  3. gksu --description pacman %terminal(echo "%p" ; %p ; read -p "%close")
+ 4. kdesu %terminal(echo "%p" ; %p ; read -p "%close")
 
 Choice 1 is the default. It requires you to type the root's password
 on every invocation of a pacman command.
@@ -450,6 +465,9 @@ the number of times you have to type the 'root' password, but it is
 less secure, because all commands can be run as root for as long as you
 are logged in with your normal account.
 
+Choice 4 requires the package 'kdebase-runtime'. kdesu is similar to
+gksu, but belongs to the KDE desktop.
+
 These commands are known to work. If you would like to use another
 runasroot, you can type a command instead of selecting one of these.
 
@@ -457,6 +475,17 @@ Default: the first one from the above list.}
 
 optPasteFilename
 {&Paste filename}
+
+optSelectbrowser
+{Select browser}
+
+optSelecttmpdir
+{Select temporary directory}
+
+optHelp_tmpdir
+{When tkPacman executes a pacman command as root, it writes temporary
+script files 'tkpacman-xterm.sh' and 'tkpacman-cmd.sh' to the directory 
+defined by this option.}
 
 }
 
@@ -513,7 +542,7 @@ btnShowHidden
 {&Show hidden}
 
 fsLbNewDir
-{Newdir}
+{New dir}
 
 fsNewDir
 {Make new directory}

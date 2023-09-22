@@ -1,3 +1,20 @@
+Version 1.2.0 (2013-10-30)
+  - tkPacman now remembers packages marked for installation or
+    removal across filter changes. Only when the user changes from
+    'available packages' to 'installed packages' or vice versa,
+    the pending operation has to be applied or forgotten.
+  - There is a new filter called 'Marked' which lists all marked
+    packages in one view.
+  - Templates for terminals 'xfce4-terminal' and 'konsole have been
+    added for option 'terminal'.
+  - Template for 'kdesu' has been added for option 'runasroot'.
+  - The file chooser has been slightly improved.
+  - Option 'tmpdir' can also be changed with the file chooser.
+  - Help text for option 'tmpdir' has been added.
+  - General help function has been added under menu Help -> Display help.
+  - The problem of ugly background colour differences under KDE has
+    been solved.
+
 Version 1.1.0 (2013-10-23)
   - Filter 'upgrades' now uses 'pacman --query --upgrades' instead
     of "pacman --sync --sysupgrade --print --print-format %n". Thanks 

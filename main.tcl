@@ -48,63 +48,45 @@ config::initConfig
 msgcat::mcload $config::languageDir
 
 ## load and create images for icons
-foreach iconFile [glob -tails -directory [file join $config::installDir icons] *.xbm] {
-    set icon [string range $iconFile 0 end-4]
+proc createBitmap {args} {
+    lassign $args icon foreground background iconFile
+    if {$iconFile eq {}} then {
+        set iconFile "${icon}.xbm"
+    }
     image create bitmap ::img::$icon \
         -file [file join $config::installDir icons $iconFile] \
-        -foreground gray30 -background {}
+        -foreground $foreground -background $background
+    return
 }
 
-image create bitmap ::img::marked \
-    -file [file join $config::installDir icons unmarked.xbm] \
-    -foreground #000000 -background green4
-    
-image create bitmap ::img::remove \
-    -file [file join $config::installDir icons unmarked.xbm] \
-    -foreground #000000 -background red4
-    
-image create bitmap ::img::refresh \
-    -file [file join $config::installDir icons refresh.xbm] \
-    -foreground blue4
-    
-image create bitmap ::img::upgrade \
-    -file [file join $config::installDir icons upgrade.xbm] \
-    -foreground green4
-
-image create bitmap ::img::apply \
-    -file [file join $config::installDir icons apply.xbm] \
-    -foreground green4
-    
-image create bitmap ::img::info \
-    -file [file join $config::installDir icons info.xbm] \
-    -foreground white -background green4
-    
-image create bitmap ::img::files \
-    -file [file join $config::installDir icons files.xbm] \
-    -foreground gray30
-    
-image create bitmap ::img::cancel \
-    -file [file join $config::installDir icons cancel.xbm] \
-    -foreground red4
-    
-image create bitmap ::img::installall \
-    -file [file join $config::installDir icons installall.xbm] \
-    -foreground green4
-    
-image create bitmap ::img::removeall \
-    -file [file join $config::installDir icons installall.xbm] \
-    -foreground red4
-
-image create bitmap ::img::box \
-    -file [file join $config::installDir icons box.xbm] \
-    -foreground #C8A064
+set grayIcons {}
+lappend grayIcons arrow_down arrow_end arrow_home arrow_left arrow_right
+lappend grayIcons empty_5_9 empty_9_5 expand files help reset
+lappend grayIcons unmarkall unmarked
+foreach icon $grayIcons {
+    createBitmap $icon gray35
+}
+createBitmap arrow_up blue4
+createBitmap arrow_top red4
+createBitmap home_dir green4
+createBitmap marked black green4 unmarked.xbm
+createBitmap remove black red4 unmarked.xbm
+createBitmap removeall red4 {} installall.xbm
+createBitmap refresh blue4
+createBitmap upgrade green4
+createBitmap apply green4
+createBitmap info white green4
+createBitmap cancel red4
+createBitmap installall green4
+createBitmap box #C8A064
+createBitmap directory #86ABD9
 
 image create photo ::img::tkpacman_icon \
     -file [file join $config::installDir icons "tkpacman-icon.png"]
     
 image create photo ::img::warning \
     -file [file join $config::installDir icons "warning.png"]
-    
+
 global readonlyBackground
 set readonlyBackground {#F3F0EB}
 
@@ -120,8 +102,6 @@ source [file join $config::installDir generic.tcl]
 ## options.tcl
 source [file join $config::installDir options.tcl]
 
-
-
 proc installReturnBindings {} {
     # The default Tk binding for generating a button press event
     # is <KeyPress-space>. We extend that behaviour to <KeyPress-Return>
@@ -133,6 +113,17 @@ proc installReturnBindings {} {
     bind Radiobutton <KeyPress-Return> {event generate %W <KeyPress-space>}
     return
 }
+
+# Set all backgrounds equal.
+# Without these adjustments, there are some ugly background colour
+# differences in the KDE desktop. The toplevel windows take their
+# background colour from KDE and the other widgets take it from
+# the Tk theme.
+set themeBackground [ttk::style lookup TFrame -background]
+option clear
+option add *Toplevel.background $themeBackground
+option add *Message.background $themeBackground
+{.} configure -background $themeBackground
 
 # Common procedures
 
@@ -159,8 +150,8 @@ namespace eval comproc {
 
 namespace eval comproc {
     proc runAsRoot {cmd} {
-        global env
-        set env(SUDO_ASKPASS) [file join $config::installDir askpass askpass.tcl]
+        # set env(SUDO_ASKPASS) [file join $config::installDir askpass askpass.tcl]
+        # has been moved to the MainWin constructor.
         set terminal [tkpOptions getOption general terminal]
         set runasroot [tkpOptions getOption general runasroot]
         set tmpdir [tkpOptions getOption general tmpdir]
@@ -277,6 +268,7 @@ namespace eval comproc {
 #       - filter(currepo): repo for filtering in mode repo
 #       - filter(ownedfile): filename for filtering in mode fileowner
 #   - nrOfMarked: number of marked packages
+#   - marklist: list of the names of marked packages
 #   - nrOfItems: number of items in packageBox
 #   - rbMode: same as packlist(mode), but this is the variable linked to the
 #       radiobuttons (see onModeSwitch for use)
@@ -287,7 +279,7 @@ namespace eval comproc {
 
 oo::class create MainWin {
 
-    variable window filter packlist \
+    variable window filter packlist marklist \
         nrOfMarked nrOfItems rbMode \
         packageBox fBox btnApply txtInfo \
         lbMarked lbAvail mnMark btnFiles btnInfo \
@@ -308,15 +300,16 @@ oo::class create MainWin {
         set filter(currgroup) {}
         set filter(currepo) {}
         set filter(ownedfile) {}
+        set marklist {}
         set nrOfMarked 0
         set nrOfItems 0
-        #my refreshPackagelist
+        # register sudo askpass helper
+        global env
+        set env(SUDO_ASKPASS) [file join $config::installDir askpass askpass.tcl]
         wm title $window [mc tkPacman]
         wm iconphoto $window -default ::img::tkpacman_icon
         wm geometry $window [join [geometry::getSize main] {x}]
         my initWindow
-        # comproc updateTxtWidget $txtInfo [mc initPackList] {}
-        # update
         my refreshPackagelist
         my refreshPackageBox
         set tpOnly [bindToplevelOnly $window <Destroy> [list [self object] destroy]]
@@ -420,6 +413,9 @@ oo::define MainWin {
             return [list $repo $name $version $groups $installed]
         }
         
+        # Show "loading package list" before really loading it
+        # Thus the tkPacman window appears faster on the screen and
+        # the user is informed about what is happening.
         comproc updateTxtWidget $txtInfo [mc initPackList] {}
         update
         set cmd [list pacman --$packlist(mode) --search {}]
@@ -451,10 +447,14 @@ oo::define MainWin {
         foreach tag {installed marked} {
             $packageBox tag remove $tag
         }
-        set nrOfMarked 0
         set nrOfItems 0
-        $btnApply state disabled
         $packageBox delete [$packageBox children {}]
+        if {$nrOfMarked > 0} then {
+            $btnApply state !disabled
+            set marklist [lsort $marklist]
+        } else {
+            $btnApply state disabled
+        }
         # Determine pacman command to get a list of filtered packages.
         # The list should only contain the package names. This usually
         # means that the "--quiet" option must be used.
@@ -476,6 +476,8 @@ oo::define MainWin {
         }
         if {$cmd ne {}} then {
             set filterList [lsort [split [comproc runCmd $cmd] "\n"]]
+        } elseif {$filter(mode) eq {pending}} then {
+            set filterList $marklist
         } else {
             set filterList {}
         }
@@ -503,7 +505,16 @@ oo::define MainWin {
                 if {$installed} then {
                     $packageBox tag add installed $item
                 }
-                $packageBox item $item -image ::img::unmarked
+                if {[lsearch -sorted $marklist $name] >= 0} then {
+                    $packageBox tag add marked $item
+                    if {$packlist(mode) eq {sync}} then {
+                        $packageBox item $item -image ::img::marked
+                    } else {
+                        $packageBox item $item -image ::img::remove
+                    }
+                } else {
+                    $packageBox item $item -image ::img::unmarked
+                }
             }
         }
         set first [lindex [$packageBox children {}] 0]
@@ -539,6 +550,10 @@ oo::define MainWin {
                 set label [mc filterRepoAvailable $filter(currepo)]
             } elseif {$filter(mode) eq {upgrades}} then {
                 set label [mc filterUpgrades]
+            } elseif {$filter(mode) eq {pending}} then {
+                set label [mc filterPendingInstallation]
+            } else {
+                set label {}
             }
         } elseif {$packlist(mode) eq {query}} then {
             if {$filter(mode) eq {off}} then {
@@ -561,6 +576,10 @@ oo::define MainWin {
                 set label [mc filterForeign]
             } elseif {$filter(mode) eq {fileowner}} then {
                 set label [mc filterFileowner $filter(ownedfile)]
+            } elseif {$filter(mode) eq {pending}} then {
+                set label [mc filterPendingRemoval]
+            } else {
+                set label {}
             }
         } else {
             chan puts stderr "refreshPackageBox: wrong packlist(mode) '$packlist(mode)'"
@@ -598,22 +617,22 @@ oo::define MainWin {
 
 oo::define MainWin {
     method onApply {refreshBox} {
-        set oplist {}
-        foreach item [$packageBox tag has marked] {
-            set package [lindex [$packageBox item $item -values] 0]
-            lappend oplist $package
-        }
-        if {[llength $oplist] > 0} then {
+        if {$nrOfMarked > 0} then {
             if {$packlist(mode) eq {sync}} then {
-                set cmd "pacman --sync $oplist"
+                set cmd "pacman --sync $marklist"
             } else {
-                set cmd "pacman --remove $oplist"
+                set cmd "pacman --remove $marklist"
             }
             comproc runAsRoot $cmd
+            set marklist {}
+            set nrOfMarked 0
+            $btnApply state disabled
             my refreshPackagelist
             if {$refreshBox} then {
                 my refreshPackageBox
             }
+        } else {
+            chan puts stderr "onApply: btnApply active but nrOfMarked = 0"
         }
         return
     }
@@ -643,11 +662,6 @@ oo::define MainWin {
 oo::define MainWin {
     method unappliedChanges {} {
         if {$nrOfMarked > 0} then {
-            set markedList {}
-            foreach item [$packageBox tag has marked] {
-                set name [lindex [$packageBox item $item -values] 0]
-                lappend markedList $name
-            }
             if {$packlist(mode) eq {sync}} then {
                 set for [mc forInstallation]
             } else {
@@ -656,7 +670,7 @@ oo::define MainWin {
             set dlg [GenDialog new \
                 -parent $window \
                 -title [mc tkPacman] \
-                -message [mc unappliedChanges $markedList $for] \
+                -message [mc unappliedChanges $marklist $for] \
                 -msgWidth 500 \
                 -buttonList {btnApplyShort btnForget} \
                 -defaultButton btnApply]
@@ -664,6 +678,9 @@ oo::define MainWin {
                 update
                 my onApply 0
             } else {
+                set nrOfMarked 0
+                set marklist {}
+                $btnApply state disabled
                 update
             }
         }
@@ -674,10 +691,17 @@ oo::define MainWin {
 oo::define MainWin {
     method onToggleMark {} {
         set item [$packageBox selection]
+        set package [lindex [$packageBox item $item -values] 0]
         if {[$packageBox tag has marked $item]} then {
             $packageBox tag remove marked $item
             $packageBox item $item -image ::img::unmarked
-            incr nrOfMarked -1
+            set pkgIndex [lsearch -exact $marklist $package]
+            if {$pkgIndex >= 0} then {
+                set marklist [lreplace $marklist $pkgIndex $pkgIndex]
+                incr nrOfMarked -1
+            } else {
+                chan puts stderr "onToggleMark: unmarking package that is not in 'marklist'"
+            }
         } else {
             $packageBox tag add marked $item
             if {$packlist(mode) eq {sync}} then {
@@ -685,6 +709,7 @@ oo::define MainWin {
             } else {
                 $packageBox item $item -image ::img::remove
             }
+            lappend marklist $package
             incr nrOfMarked 1
         }
         if {$nrOfMarked > 0} then {
@@ -725,8 +750,10 @@ oo::define MainWin {
                 } else {
                     $packageBox item $item -image ::img::remove
                 }
+                set package [lindex [$packageBox item $item -values] 0]
+                lappend marklist $package
+                incr nrOfMarked
             }
-            set nrOfMarked $nrOfItems
             $btnApply state {!disabled}
         }
         return
@@ -737,10 +764,19 @@ oo::define MainWin {
     method onUnMarkAll {} {
         foreach item [$packageBox tag has marked] {
             $packageBox item $item -image ::img::unmarked
+            set package [lindex [$packageBox item $item -values] 0]
+            set pkgIndex [lsearch -exact $marklist $package]
+            if {$pkgIndex >= 0} then {
+                set marklist [lreplace $marklist $pkgIndex $pkgIndex]
+                incr nrOfMarked -1
+            } else {
+                chan puts stderr "onUnMarkAll: removing package not in marklist"
+            }
         }
         $packageBox tag remove marked
-        $btnApply state disabled
-        set nrOfMarked 0
+        if {$nrOfMarked == 0} then {
+            $btnApply state disabled
+        }
         return
     }
 }
@@ -757,7 +793,7 @@ oo::define MainWin {
 
 oo::define MainWin {
     method onSearch {} {
-        my unappliedChanges
+        # my unappliedChanges
         set filter(mode) search
         set filter(currgroup) {}
         set filter(currepo) {}
@@ -779,11 +815,11 @@ oo::define MainWin {
         } elseif {$filter(mode) eq {repo}} then {
             focus $cmbRepo
         } elseif {$filter(mode) eq {fileowner}} then {
-            my unappliedChanges
+            # my unappliedChanges
             set filter(ownedfile) [my getOwnedFile]
             my refreshPackageBox
-        } elseif {$filter(mode) in {off upgrades orphans explicit foreign}} then {
-            my unappliedChanges
+        } elseif {$filter(mode) in {off pending upgrades orphans explicit foreign}} then {
+            # my unappliedChanges
             my refreshPackageBox
         }
         return
@@ -799,8 +835,8 @@ oo::define MainWin {
         my unappliedChanges
         set packlist(mode) $newmode
         set rbMode $newmode
-        if {(($packlist(mode) eq {sync}) && ($filter(mode) in {orphans explicit foreign fileowner})) || \
-            (($packlist(mode) eq {query}) && ($filter(mode) in {upgrades}))} then {
+        if {(($packlist(mode) eq {sync}) && ($filter(mode) in {pending orphans explicit foreign fileowner})) || \
+            (($packlist(mode) eq {query}) && ($filter(mode) in {pending upgrades}))} then {
             set filter(mode) off
             set filter(pattern) {}
             set filter(currgroup) {}
@@ -826,7 +862,7 @@ oo::define MainWin {
 
 oo::define MainWin {
     method onSelectGroup {} {
-        my unappliedChanges
+        # my unappliedChanges
         set filter(mode) group
         set filter(pattern) {}
         set filter(currepo) {}
@@ -838,7 +874,7 @@ oo::define MainWin {
 
 oo::define MainWin {
     method onSelectRepo {} {
-        my unappliedChanges
+        # my unappliedChanges
         set filter(mode) repo
         set filter(pattern) {}
         set filter(currgroup) {}
@@ -850,7 +886,7 @@ oo::define MainWin {
 
 oo::define MainWin {
     method onRefreshDatabase {} {
-        my unappliedChanges
+        # my unappliedChanges
         comproc runAsRoot "pacman --sync --refresh"
         my refreshPackagelist
         my refreshPackageBox
@@ -860,7 +896,7 @@ oo::define MainWin {
 
 oo::define MainWin {
     method onSysUpgrade {} {
-        my unappliedChanges
+        # my unappliedChanges
         comproc runAsRoot "pacman --sync --refresh --sysupgrade"
         my refreshPackagelist
         my refreshPackageBox
@@ -868,6 +904,42 @@ oo::define MainWin {
     }
 }
 
+oo::define MainWin {
+    method onQuit {} {
+        my unappliedChanges
+        destroy $window
+        return
+    }
+}
+
+##
+# MainWin displayHelp
+##
+
+oo::define MainWin {
+    method displayHelp {} {
+        set helpFolder [file join $::config::docDir en]
+        foreach locale [lrange [::msgcat::mcpreferences] 0 end-1] {
+            set translatedFolder [file join $::config::docDir $locale]
+            if {[file exists $translatedFolder] && \
+                [file isdirectory $translatedFolder]} then {
+                set helpFolder $translatedFolder
+                break
+            }
+        }
+        set helpfile [file join $helpFolder help.txt]
+        if {[catch {open $helpfile r} helpchan]} then {
+            chan puts stderr $helpchan
+        } else {
+            set helptext [chan read $helpchan]
+            chan close $helpchan
+            set txtEdit [TextEdit new $window "tkPacman - Help" $helptext 1]
+            $txtEdit setWrap "word"
+            $txtEdit renderBold
+        }
+        return
+    }
+}
 
 ##
 # MainWin displayAbout
@@ -1081,6 +1153,10 @@ oo::define MainWin {
             -textvariable [my varname filter(currepo)] -width 10]
         $cmbRepo configure -postcommand [list [self object] fillRepoCombo]
         bind $cmbRepo <<ComboboxSelected>> [list [self object] onSelectRepo]
+        # pending
+        set rbPending [defineRadiobutton [appendToPath $fFilter rbPending] \
+            $window rbPending [list [self object] onFilterSwitch] \
+            [my varname filter(mode)] pending]
         # upgrades
         set rbUpgrades [defineRadiobutton [appendToPath $fFilter rbUpgrades] \
             $window rbUpgrades [list [self object] onFilterSwitch] \
@@ -1106,6 +1182,7 @@ oo::define MainWin {
         pack $cmbGroup -side top -fill x -padx {15 5}
         pack $rbRepo -side top -fill x
         pack $cmbRepo -side top -fill x -padx {15 5}
+        pack $rbPending -side top -fill x
         pack $rbUpgrades -side top -fill x
         pack $rbOrphans -side top -fill x
         pack $rbExplicit -side top -fill x
@@ -1130,10 +1207,10 @@ oo::define MainWin {
         addMenuItem $mnPacman mnuImport command [list [self object] onImport]
         addMenuItem $mnPacman mnuLog command [list [self object] showLog]
         addMenuItem $mnPacman mnuClean command [list [self object] cleanCache]
-        addMenuItem $mnPacman mnuQuit command [list destroy $window]
+        addMenuItem $mnPacman mnuQuit command [list [self object] onQuit]
         # accelerators for Database menu
         $mnPacman entryconfigure 3 -accelerator {Cntrl-q}
-        bind $window <Control-KeyPress-q> [list destroy $window]
+        bind $window <Control-KeyPress-q> [list [self object] onQuit]
 
         # Mark menu
         set mnMark [menu $menubar.mark -tearoff 0]
@@ -1163,6 +1240,7 @@ oo::define MainWin {
 
         # Help menu
         set mnHelp [menu $menubar.help -tearoff 0]
+        addMenuItem $mnHelp mnuHelpFile command [list [self object] displayHelp]
         addMenuItem $mnHelp mnuLicense command [list [self object] displayLicense]
         addMenuItem $mnHelp mnuAbout command [list [self object] displayAbout]
 
@@ -1189,7 +1267,7 @@ oo::define MainWin {
         $btnInstallFile configure -image ::img::box -compound left
         set fSpace [ttk::frame [appendToPath $fButtons fSpace]]
         set btnQuit [defineButton [appendToPath $fButtons btnQuit] \
-            $window btnQuit [list destroy $window]]
+            $window btnQuit [list [self object] onQuit]]
         $btnQuit configure -image ::img::cancel -compound left
         pack $btnRefresh -side left -fill y
         pack $btnSysUpgrade -side left -fill y

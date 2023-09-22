@@ -1,0 +1,71 @@
+<b>Concept</b>
+
+Using the radio buttons just below the toolbar, you can switch between 'Available packages' and 'Installed packages'.
+
+Available packages can be fetched from the software repositories defined in /etc/pacman.conf.
+
+If 'Available packages' are displayed, you can mark packages for installation.
+
+If 'Installed packages' are displayed, you can mark packages for removal.
+
+In both modes you can apply filters to reduce the number of packages that are displayed.
+
+The special filter 'Marked' lists the packages that are marked for installation or removal.
+
+By pressing the 'Apply Changes' button you can install or remove the marked packages.
+
+
+<b>Resync Database</b>
+
+pacman keeps a database with information about the packages in the software repositories.
+
+This database needs to be kept up to date by executing the 'pacman --sync --refresh' command.
+
+You can do this by just pressing the 'Resync Database' button.
+
+This does not upgrade any packages.
+
+
+<b>System Upgrade</b>
+
+By pressing the 'System Upgrade' button the pacman command 'pacman --sync --refresh --sysupgrade' is executed.
+
+This resyncs the database and upgrades all packages to their latest available version.
+
+
+<b>Configuring 'sudo'</b>
+
+To use 'sudo' in the 'runasroot' option, you may need to configure 'sudo'.
+
+There are many ways to configure sudo. But here is a way that usually works.
+
+First add your account to the group 'wheel'. Don't forget to logout and login again after that.
+
+Then edit the /etc/sudoers file by running the command 'visudo' as 'root'.
+
+Uncomment or add the line
+
+%wheel ALL=(ALL) ALL
+
+For some desktop environments (e.g. KDE), you need to uncomment or add the following line
+
+Defaults env_keep += "HOME"
+
+Without it you cannot open a window as root in KDE. You can test it by typing the command
+
+sudo konsole
+
+in a terminal (konsole) window.
+
+By adding a line
+
+Defaults timestamp_timeout = 10
+
+you can set the time that sudo caches your password to 10 minutes instead of the default 5 minutes.
+
+
+<b>Problems with setting 'terminal' and 'runasroot' options</b>
+
+If you have problems with setting the 'terminal' or 'runasroot' options, start tkPacman from a terminal window by typing 'tkpacman' instead of starting it from the desktop menu.
+
+tkPacman will then display error and warning messages on the terminal which may help you to solve the problems.

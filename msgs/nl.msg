@@ -70,6 +70,9 @@ mnuDecrFont
 mnuHelp
 {&Help}
 
+mnuHelpFile
+{&Toon hulp}
+
 mnuLicense
 {&Licentie}
 
@@ -219,6 +222,9 @@ rbExplicit
 rbFilterOff
 {&Uit}
 
+rbPending
+{Aangestipt}
+
 rbUpgrades
 {Opwaarderingen}
 
@@ -252,7 +258,7 @@ packagesInstalled
 {Geïnstalleerd: }
 
 allAvailable
-{Alle pakketten beschikbaar in depot}
+{Alle pakketten beschikbaar in depots}
 
 filterWordAvailable
 {Alle beschikbare pakketten met het woord '%1$s' in 'naam' of 'beschrijving'}
@@ -283,6 +289,12 @@ filterExplicit
 
 filters
 {Filters}
+
+filterPendingInstallation
+{Alle pakketten die aangstipt zijn voor installatie}
+
+filterPendingRemoval
+{All pakketten die aangestipt zijn voor verwijdering}
 
 filterUpgrades
 {Beschikbare opwaarderingen}
@@ -404,6 +416,8 @@ het oproepen van een terminal programma:
     lxterminal --title=%t --command=%c
     xterm -title %t -e %c
     vte --name=%t --command=%c
+    xfce4-terminal --disable-server --title=%t --command=%c
+    konsole --nofork --caption %t -e %c
     roxterminal --title=%t --execute %c
 
 Bij het uitvoeren van deze commando's vervangt tkPacman %t door een
@@ -417,9 +431,9 @@ van er een te kiezen uit de lijst.
 lxterminal is de standaard keuze omdat deze zowel mooi is als weinig
 afhankelijkheden heeft.
 
-Ik heb andere, meer geavanceerde terminals zoals gnome-terminal, konsole
-en xfce4-terminal geprobeerd, maar ik kon deze niet goed laten werken
-in de context van tkPacman.}
+Ik heb ook geprobeerd gnome-terminal te laten werken, maar die
+begint altijd op de achtergrond te lopen waardoor deze niet bruikbaar
+is in de context van tkPacman.}
 
 optHelp_runasroot {
 Het commando dat tkPacman moet gebruiken om pacman commando's uit te
@@ -444,6 +458,7 @@ Door de drop down box te gebruiken, kunt u kiezen uit de volgende
  1. %terminal(echo "%p" ; su --command="%p" ; read -p "%close")
  2. sudo --askpass %terminal(echo "%p" ; %p ; read -p "%close")
  3. gksu --description pacman %terminal(echo "%p" ; %p ; read -p "%close")
+ 4. kdesu %terminal(echo "%p" ; %p ; read -p "%close")
 
 Keuze 1 is de standaard keuze. Ze veresit dat u het 'root' wachtwoord
 invoert bij elk pacman commando.
@@ -462,6 +477,9 @@ moet invoeren, maar ze is minder veilig, omdat alle commando's
 als 'root' kunnen uitgevoerd worden gedurende de hele tijd dat u
 aangemeld bent bij uw normale account.
 
+Keuze 4 vereist het pakket 'kdebase-runtime'. kdesu is gelijkaardig
+aan gksu, maar behoort tot de KDE desktop.
+
 Van deze runasroot commando's is geweten dat ze werken. Als u liever
 een ander runasroot commando gebruikt, kunt u het typen in plaats
 van een te kiezen uit de lijst.
@@ -471,6 +489,18 @@ Standaard: Het eerste commando van de lijst.}
 
 optPasteFilename
 {Bestandsnaam &plakken}
+
+
+optSelectbrowser
+{Kies browser}
+
+optSelecttmpdir
+{Kies tijdelijke map}
+
+optHelp_tmpdir
+{Wanneer tkPacman een pacman commando uitvoert als root maakt het
+twee tijdelijke scripts aan, 'tkpacman-xterm.sh' en 'tkpacman-cmd.sh', in
+de map bepaald door deze optie.}
 
 }
 
@@ -524,7 +554,7 @@ fsFiletype
 {Bestandstype}
 
 fsLbNewDir
-{NieuweMap}
+{Nieuwe Map}
 
 btnShowHidden
 {&Toon verborgen}

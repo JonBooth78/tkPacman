@@ -805,6 +805,49 @@ oo::define TextEdit {
     }
 }
 
+oo::define TextEdit {
+    method setWrap {value} {
+        set wrap $value
+        my onWrap
+        return
+    }
+}
+
+##
+# TextEdir renderBold
+#   This method looks for the <b> ... </b> tags and renders the text
+#   between them as bold.
+
+oo::define TextEdit {
+    method renderBold {} {
+        $txtWidget configure -state normal
+        $txtWidget tag delete bold
+        set first "1.0"
+        while {1} {
+            set first [$txtWidget search {<b>} $first]
+            if {$first ne {}} then {
+                $txtWidget delete $first "${first} + 3 chars"
+                set last [$txtWidget search {</b>} $first]
+                if {$last ne {}} then {
+                    $txtWidget delete $last "${last} + 4 chars"
+                    $txtWidget tag add bold $first $last
+                    set first $last
+                } else {
+                    chan puts stderr "TextEdit renderBold: </b> missing"
+                    break
+                }
+            } else {
+                break
+            }
+        }
+        $txtWidget tag configure bold -font {-weight bold}
+        if {$readOnly} then {
+            $txtWidget configure -state disabled
+        }
+        return
+    }
+}
+
 ##
 # TextEdit gotoBegin
 #   This method can be called to set the cursor to begin of the text.
@@ -1378,7 +1421,8 @@ oo::define ListBox {
 #       The default values is [list [list "All files" "*"]]
 #
 #       example: -filetypes {{{Databases} {*.db *.sqlite}} {{All files} {*}}}
-#
+#    -dironly boolean: if 1 only dirname is returned, if 0 dirname + filename
+#       is returned. Default : 0.
 # After creating a FileSelection object you can call either the 'wait'
 # method or the 'defineCallBack' method. The call back script should
 # call the getResult method. Both the 'wait' and the 'getResult' methods
@@ -1389,6 +1433,7 @@ oo::define ListBox {
 #        object
 #   - parent: the Tk path of the parent window
 #   - directory: the currently selected directory (fully qualified path)
+#   - dironly
 #   - filename: the tail of the currently selected filename
 #   - title: the title displayed on the toplevel window
 #   - filetypes: value of the -filetypes option
@@ -1415,11 +1460,12 @@ oo::define ListBox {
 oo::class create FileSelection {
     variable window parent directory filename title filetypes typesForCombo \
         showHidden tvDir tvFiles dirItems fileItems dirList fileList mode \
-        filter pressedOK callback fromDir entDir entFilename
+        filter pressedOK callback fromDir entDir entFilename dironly initfilename
 
     constructor {args} {
         set parent {}
         set directory [tkpOptions getOption fileselection lastdir]
+        set dironly 0
         set filename {}
         set title {Select filename}
         set showHidden 0
@@ -1430,6 +1476,7 @@ oo::class create FileSelection {
         set allFiles [list "All files" [list "*"]]
         set filetypes [list $allFiles]
         set filter {*}
+        set initfilename {}
         dict for {option value} $args {
             if {$option eq {-parent}} then {
                 set parent $value
@@ -1439,8 +1486,13 @@ oo::class create FileSelection {
                     && [file isdirectory $dirname]} then {
                         set directory $dirname
                 }
+            } elseif {$option eq {-dironly}} then {
+                if {$value == 1} then {
+                    set dironly 1
+                }
             } elseif {$option eq {-filename}} then {
                 set filename $value
+                set initfilename $value
             } elseif {$option eq {-title}} then {
                 set title $value
             } elseif {$option eq {-filetypes}} then {
@@ -1450,6 +1502,9 @@ oo::class create FileSelection {
             } else {
                 puts "FileSelection '$option': unknown option"
             }
+        }
+        if {![file exists $directory] || ![file isdirectory $directory]} then {
+            set directory [file normalize ~]
         }
         set typesForCombo {}
         foreach typespec $filetypes {
@@ -1509,7 +1564,8 @@ oo::define FileSelection {
         }
         $tvDir delete [$tvDir children {}]
         foreach dir $dirList {
-            lappend dirItems [$tvDir insert {} end -values [list $dir]]
+            lappend dirItems [$tvDir insert {} end -text $dir \
+                -image ::img::directory]
         }
         if {[llength $dirItems] > 0} then {
             if {[string length $fromDir] > 0} then {
@@ -1547,10 +1603,20 @@ oo::define FileSelection {
             $tvFiles selection set $item
             $tvFiles focus $item
             $tvFiles see $item
-            my changeFile
+            if {$initfilename ne {}} then {
+                set filename $initfilename
+            } else {
+                my changeFile
+            }
+        } else {
+            set filename $initfilename
         }
         update
-        bind $tvFiles <<TreeviewSelect>> [list [self object] changeFile]
+        if {!$dironly} then {
+            bind $tvFiles <<TreeviewSelect>> [list [self object] changeFile]
+        } else {
+            set filename {}
+        }
         set fromDir {}
         $entDir xview moveto 1
         #foreach tag [bind $tvDir] {
@@ -1629,7 +1695,11 @@ oo::define FileSelection {
         set mode wait
         tkwait window $window
         if {$pressedOK} then {
-            set path [file join $directory $filename]
+            if {$dironly} then {
+                set path $directory
+            } else {
+                set path [file join $directory $filename]
+            }
         } else {
             set path {}
         }
@@ -1662,7 +1732,11 @@ oo::define FileSelection {
 oo::define FileSelection {
     method getResult {} {
         if {$pressedOK} then {
-            set path [file join $directory $filename]
+            if {$dironly} then {
+                set path $directory
+            } else {
+                set path [file join $directory $filename]
+            }
         } else {
             set path {}
         }
@@ -1736,7 +1810,7 @@ oo::define FileSelection {
 
 oo::define FileSelection {
     method changeDir {} {
-        set dir [lindex [$tvDir item [$tvDir selection] -values] 0]
+        set dir [$tvDir item [$tvDir selection] -text]
         if {$dir eq {.}} then {
             # do nothing
         } elseif {$dir eq {..}} then {
@@ -1841,12 +1915,17 @@ oo::define FileSelection {
         # fPath
         set fPath [ttk::frame $window.fpath -takefocus 0]
         set lblDir [ttk::label $fPath.lblpath -text [mc fsDirectory]]
-        set entDir [entry $fPath.entpath -takefocus 0 \
-            -width 50 -textvariable [my varname directory]]
-        $entDir configure -state "readonly"
+        global readonlyBackground
+        set entDir [ttk::entry $fPath.entpath -takefocus 0 -width 50 \
+            -textvariable [my varname directory]]
+        $entDir state {readonly}
+        set hsDir [ttk::scrollbar $fPath.hsDir -orient horizontal \
+            -command [list $entDir xview]]
+        $entDir configure -xscrollcommand [list $hsDir set]
         set lblFilename [ttk::label $fPath.lblfilename -text [mc fsFilename] \
             -compound right -image ::img::empty_5_9]
-        set entFilename [entry $fPath.entfilename -textvariable [my varname filename]]
+        set entFilename [ttk::entry $fPath.entfilename \
+            -textvariable [my varname filename]]
         set btnUp [ttk::button $fPath.btnup -image ::img::arrow_up \
             -takefocus 0 \
             -command [list [self object] onUp]]
@@ -1856,21 +1935,26 @@ oo::define FileSelection {
         set btnHome [ttk::button $fPath.btnhome -image ::img::home_dir \
             -takefocus 0 \
             -command [list [self object] onHome]]
-        grid $lblDir -row 0 -column 0
+        grid $lblDir -row 0 -rowspan 2 -column 0 -sticky w
         grid $entDir -row 0 -column 1 -sticky we
-        grid $lblFilename -row 1 -column 0
-        grid $entFilename -row 1 -column 1 -sticky we
-        grid $btnUp -row 0 -column 2 -sticky wens
-        grid $btnRoot -row 0 -column 3 -sticky wens
-        grid $btnHome -row 0 -column 4 -sticky wens
+        grid $hsDir -row 1 -column 1 -sticky we
+        grid $lblFilename -row 2 -column 0 -sticky w
+        grid $entFilename -row 2 -column 1 -sticky we -pady {10 0}
+        grid $btnUp -row 0 -rowspan 2 -column 2
+        grid $btnRoot -row 0 -rowspan 2 -column 3
+        grid $btnHome -row 0 -rowspan 2 -column 4
         grid columnconfigure $fPath 1 -weight 1
-        # fListboxes
-        set fListboxes [ttk::frame $window.flbx]
+        # pwListboxes
+        set pwListboxes [ttk::panedwindow $window.pwlsb -orient horizontal]
+        set fDirbox [ttk::frame $pwListboxes.fDirbox]
+        set fFilebox [ttk::frame $pwListboxes.fFilebox]
+        $pwListboxes add $fDirbox -weight 1
+        $pwListboxes add $fFilebox -weight 1
         # dir search
-        set fDirSearch [ttk::frame $fListboxes.fds]
+        set fDirSearch [ttk::frame $fDirbox.fds]
         set lblDirSearch [ttk::label $fDirSearch.lbl -text [mc fsSearch] \
             -compound right -image ::img::empty_5_9]
-        set entDirSearch [entry $fDirSearch.ent]
+        set entDirSearch [ttk::entry $fDirSearch.ent]
         bind $entDirSearch <FocusIn> \
             [list $lblDirSearch configure -compound right -image ::img::arrow_right]
         bind $entDirSearch <FocusOut> \
@@ -1884,19 +1968,27 @@ oo::define FileSelection {
         pack $lblDirSearch -side left -padx {10 0}
         pack $entDirSearch -side left -expand 1 -fill x
         # dir listbox
-        set tvDir [ttk::treeview $fListboxes.tvdir -columns {directories} \
-            -show headings -selectmode browse -takefocus 1]
-        $tvDir heading directories -text [mc fsSubdirectories] \
+        set tvDir [ttk::treeview $fDirbox.tvdir \
+            -selectmode browse -takefocus 1]
+        $tvDir heading #0 -text [mc fsSubdirectories] \
             -image ::img::empty_9_5
-        set hsDir [ttk::scrollbar $fListboxes.hsdir -orient horizontal -command [list $tvDir xview]]
-        $tvDir configure -xscrollcommand [list $hsDir set]
-        set vsDir [ttk::scrollbar $fListboxes.vsdir -orient vertical -command [list $tvDir yview]]
+        $tvDir column #0 -stretch 1
+        # set hsDir [ttk::scrollbar $fDirbox.hsdir -orient horizontal -command [list $tvDir xview]]
+        # $tvDir configure -xscrollcommand [list $hsDir set]
+        set vsDir [ttk::scrollbar $fDirbox.vsdir -orient vertical -command [list $tvDir yview]]
         $tvDir configure -yscrollcommand [list $vsDir set]
+        # layout pane fDirbox
+        grid $fDirSearch -row 0 -column 0 -sticky we
+        grid $tvDir -row 1 -column 0 -sticky wens
+        grid $vsDir -row 1 -column 1 -sticky ns
+        grid columnconfigure $fDirbox 0 -weight 1
+        grid rowconfigure $fDirbox 1 -weight 1
+        
         # file search
-        set fFileSearch [ttk::frame $fListboxes.ffs]
+        set fFileSearch [ttk::frame $fFilebox.ffs]
         set lblFileSearch [ttk::label $fFileSearch.lbl -text [mc fsSearch] \
             -compound right -image ::img::empty_5_9]
-        set entFileSearch [entry $fFileSearch.ent]
+        set entFileSearch [ttk::entry $fFileSearch.ent]
         bind $entFileSearch <FocusIn> \
             [list $lblFileSearch configure -compound right -image ::img::arrow_right]
         bind $entFileSearch <FocusOut> \
@@ -1910,28 +2002,26 @@ oo::define FileSelection {
         pack $lblFileSearch -side left -padx {10 0}
         pack $entFileSearch -side left -expand 1 -fill x
         # files listbox
-        set tvFiles [ttk::treeview $fListboxes.tvfiles -columns {files} \
+        set tvFiles [ttk::treeview $fFilebox.tvfiles -columns {files} \
             -show headings -selectmode browse -takefocus 1]
         $tvFiles heading files -text [mc fsFiles] -image ::img::empty_9_5
-        set hsFiles [ttk::scrollbar $fListboxes.hsfiles -orient horizontal -command [list $tvFiles xview]]
-        $tvFiles configure -xscrollcommand [list $hsFiles set]
-        set vsFiles [ttk::scrollbar $fListboxes.vsfiles -orient vertical -command [list $tvFiles yview]]
+        # set hsFiles [ttk::scrollbar $fFilebox.hsfiles -orient horizontal -command [list $tvFiles xview]]
+        # $tvFiles configure -xscrollcommand [list $hsFiles set]
+        set vsFiles [ttk::scrollbar $fFilebox.vsfiles -orient vertical -command [list $tvFiles yview]]
         $tvFiles configure -yscrollcommand [list $vsFiles set]
-        grid $fDirSearch -row 0 -column 0 -sticky we
-        grid $fFileSearch -row 0 -column 2 -sticky we
-        grid $tvDir -row 1 -column 0 -sticky wens
-        grid $vsDir -row 1 -column 1 -sticky ns
-        grid $tvFiles -row 1 -column 2 -sticky wens
-        grid $vsFiles -row 1 -column 3 -sticky ns
-        grid $hsDir -row 2 -column 0 -sticky we
-        grid $hsFiles -row 2 -column 2 -sticky we
-        grid columnconfigure $fListboxes 0 -weight 1
-        grid columnconfigure $fListboxes 2 -weight 1
-        grid rowconfigure $fListboxes 0 -weight 1
+        $tvFiles column files -stretch 1 -width 50
+        grid $fFileSearch -row 0 -column 0 -sticky we
+        grid $tvFiles -row 1 -column 0 -sticky wens
+        grid $vsFiles -row 1 -column 1 -sticky ns
+        # grid $hsDir -row 2 -column 0 -sticky we
+        # grid $hsFiles -row 2 -column 2 -sticky we
+        grid columnconfigure $fFilebox 0 -weight 1
+        grid rowconfigure $fFilebox 1 -weight 1
         # fFilter
         set fFilter [ttk::frame $window.ffilter -takefocus 0]
         set btnNewdir [defineButton $fFilter.btnnewdir $window btnNewdir \
             [list [self object] onNew]]
+        $btnNewdir configure -image ::img::upgrade -compound left
         set lblFiletypes [ttk::label $fFilter.lblfiletypes -text [mc fsFiletype] \
             -compound right -image ::img::empty_5_9]
         set cmbFiletypes [ttk::combobox $fFilter.cmbFiletypes -values $typesForCombo]
@@ -1959,11 +2049,16 @@ oo::define FileSelection {
         pack $btnLegend -side left
         pack $btnCancel -side left
         pack $btnOK -side left
+        # sizegrip
+        set fsgrip [ttk::frame $window.fsgrip]
+        set sgrip [ttk::sizegrip $fsgrip.sgrip]
+        pack $sgrip -side right
         # pack frames
         pack $fPath -side top -fill x -padx 10 -pady 10
-        pack $fListboxes -side top -expand 1 -fill both
+        pack $pwListboxes -side top -expand 1 -fill both
         pack $fFilter -side top -fill x -pady 10
         pack $fAccept -side top -fill x -padx 10 -pady 10
+        pack $fsgrip -side top -fill x
         # bind
         bind $window <Alt-KeyPress-u> [list $btnUp invoke]
         # bind $window <KeyPress-Prior> [list $btnUp invoke]
@@ -1988,9 +2083,9 @@ oo::define FileSelection {
         bind $cmbFiletypes <FocusOut> \
             [list $lblFiletypes configure -compound right -image ::img::empty_5_9]
         bind $tvDir <FocusIn> \
-            [list $tvDir heading directories -image ::img::arrow_down]
+            [list $tvDir heading #0 -image ::img::arrow_down]
         bind $tvDir <FocusOut> \
-            [list $tvDir heading directories -image ::img::empty_9_5]
+            [list $tvDir heading #0 -image ::img::empty_9_5]
         bind $tvFiles <FocusIn> \
             [list $tvFiles heading files -image ::img::arrow_down]
         bind $tvFiles <FocusOut> \

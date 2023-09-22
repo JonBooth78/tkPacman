@@ -13,6 +13,14 @@ set installDir [file dirname [file normalize [info script]]]
 set languageDir [file join $installDir msgs]
 msgcat::mcload $languageDir
 
+# Set all backgrounds equal
+# Without these adjustments, there are some ugly background colour
+# differences in the KDE desktop. The toplevel windows take their
+# background colour from KDE and the other widgets take it from
+# the Tk theme.
+set themeBackground [ttk::style lookup TFrame -background]
+{.} configure -background $themeBackground
+
 proc appendBindTag {widget newTag} {
     set tags [bindtags $widget]
     lappend tags $newTag

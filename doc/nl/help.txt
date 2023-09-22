@@ -1,0 +1,75 @@
+<b>Concept</b>
+
+Door op de radioknoppen juist onder de werkbalk te drukken, kunt u afwisselen tussen 'Beschikbare pakketten' en 'Geïnstalleerde pakketten'.
+
+Beschikbare pakketten kunnen opgehaald worden van de software depots (repositories) die gedefinieerd zijn in /etc/pacman.conf.
+
+Als 'Beshikbare pakketten' getoond worden, kunt u pakketten aanstippen voor installatie.
+
+Als 'Geïnstalleerde pakketten' getoond worden, kunt u pakketten aanstippen vooor verwijdering.
+
+In beide modi, kunt u filters toepassen om het aantal gelijste pakketten te verminderen.
+
+De speciale filter 'Aangestipt' laat de pakketten zien die aangestipt zijn voor installatie of verwijdering.
+
+Door op de knop 'Veranderingen toepassen' te drukken, kunt u de aangestipte pakketten installeren of verwijderen.
+
+
+<b>Database synchroniseren</b>
+
+pacman heeft een database met informatie over de pakketten in de software depots.
+
+Deze database moet up to date gehouden worden door het commando 'pacman --sync --refresh' uit te voeren.
+
+U kunt dit eenvoudig doen door op de knop 'Database synchroniseren' te drukken.
+
+Hierbij worden geen pakketten opgewaardeerd.
+
+
+<b>Systeem opwaarderen</b>
+
+Door op de knop 'Systeem Opwaarderen' te drukken wordt het pacman commando 'pacman --sync --refresh --sysupgrade' uitgevoerd.
+
+Hierbij wordt de database gesynchroniseerd en worden alle geïnstalleerde pakketten opgewaardeerd naar de laatste beschikbare versie.
+
+
+<b>'sudo' configureren</b>
+
+Om 'sudo' te kunnen gebruiken in de 'runasroot' optie, kan het nodig zijn 'sudo' te configueren.
+
+Er zijn meerdere manieren om 'sudo' te configureren. Maar hier is een manier die gewoonlijk werkt.
+
+Voeg eerst uw gebruikersaccount toe aan de groep 'wheel'. Vergeet daarna niet af te melden en terug aan te melden.
+
+Bewerk nu het /etc/sudoers bestand door het commando 'visudo' uit te voeren als 'root'.
+
+Haal het commentaar teken weg vóór de lijn
+
+%wheel ALL=(ALL) ALL
+
+of voeg deze lijn toe.
+
+Voor sommige bureablad omgevingen (b.v. KDE), moet u het commentaar teken weghalen vóór de lijn
+
+Defaults env_keep += "HOME"
+
+of moet u deze lijn toevoegen.
+
+Zonder die lijn kunt u geen vensters openen als 'root' in KDE. U kunt dit testen door het commando
+
+sudo konsole
+
+in te typen in een terminal (konsole) venster.
+
+Door een lijn
+
+Defaults timestamp_timeout = 10
+
+toe te voegen, kunt u de tijd dat 'sudo' uw wachtwoord onthoudt op 10 minuten zetten in plaats van de standaard 5 minuten.
+
+
+<b>Problemen met instellen van 'terminal' en 'runasroot' opties</b>
+
+Als u problemen hebt met het instellen van de 'terminal' of 'runasroot' opties, start u tkPacman vanaf een terminal venster door het typen van het commando 'tkpacman' in plaats van het bureaublad menu te gebruiken.
+
+tkPacman zal dan fouten en waarschuwingen op de terminal tonen die u kunnen helpen het probleem op te lossen.
