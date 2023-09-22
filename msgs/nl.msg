@@ -344,7 +344,7 @@ Zie Extra -> Opties.}
 about_tkp
 {tkPacman versie %1$s
 
-Copyright © Willem Herremans 2013-2015
+Copyright © Willem Herremans 2013-2017
 
 Dit programma is vrije software; u kunt het herverdelen en/of wijzigen onder de voorwaarden van de GNU General Public License zoals die gepubliceerd wordt door de Free Software Foundation; ofwel versie 2 van de licentie, ofwel (uw keuze) een latere versie.
 
@@ -446,12 +446,12 @@ om pacman commando's uit te voeren.
 De selectie dialoog laat u kiezen uit de volgende commando's voor
 het oproepen van een terminal programma:
 
-    xfce4-terminal --disable-server --title=%t --command=%c
-    konsole --nofork --caption %t -e %c
-    mate-terminal --disable-factory --title=%t --command=%c
-    roxterm --separate --title=%t --execute %c
-    vte --name=%t --command=%c
-    xterm -title %t -e %c
+        xfce4-terminal --disable-server --title=%t --command=%c
+        konsole --nofork -p tabtitle=%t -e %c
+        mate-terminal --disable-factory --title=%t --command=%c
+        vte --name=%t --command=%c
+        qterminal --execute %c
+        xterm -title %t -e %c
 
 Bij het uitvoeren van deze commando's vervangt tkPacman %t door een
 geschikte titel voor het terminal venster en %c door het commando dat
@@ -469,8 +469,8 @@ terminal programma de controle maar teruggeeft aan tkPacman nadat het
 commando '%c' volledig is uitgevoerd. Sommige terminal programma's
 gedragen zich goed in dat opzicht: vte en xterm. Andere moeten
 opgeroepen worden met een speciale optie: xfce4-terminal
---disable-server, mate-terminal --disable-factory, roxterm --separate,
-konsole --nofork. Nog andere kan ik er niet van weerhouden de controle
+--disable-server, mate-terminal --disable-factory, konsole --nofork.
+Nog andere kan ik er niet van weerhouden de controle
 onmiddelijk terug te geven aan tkPacman: gnome-terminal, lxterminal.}
 
 optHelp_runasroot {
@@ -506,8 +506,7 @@ Keuze 2 vereist het pakket 'sudo' en en een geconfigureerd
 zekere tijd onthouden wordt door sudo (standaard 5 minuten).
 Gedurende deze tijd kunt u een ander pacman commando uitvoeren
 zonder uw wachtwoord te moeten invoeren. Normaal vereist sudo dat u
-uw eigen wachtwoord invoert in plaats van het 'root' wachtwoord. Als
-u KDE gebruikt kunt u waarschijnlijk beter 'kdesu' gebruiken.
+uw eigen wachtwoord invoert in plaats van het 'root' wachtwoord.
 
 Keuze 3 vereist het pakket 'gksu'. gksu kan het 'root' wachtwoord
 onthouden gedurende de sessie of zelfs opslaan in de gnome keyring.
@@ -516,7 +515,7 @@ moet invoeren, maar ze is minder veilig, omdat alle commando's
 als 'root' kunnen uitgevoerd worden gedurende de hele tijd dat u
 aangemeld bent bij uw normale account.
 
-Keuze 4 vereist het pakket 'kdebase-runtime'. kdesu is gelijkaardig
+Keuze 4 vereist het pakket 'kdesu'. kdesu is gelijkaardig
 aan gksu, maar behoort tot de KDE desktop.
 
 Van deze runasroot commando's is geweten dat ze werken. Als u liever

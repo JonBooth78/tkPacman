@@ -1004,7 +1004,14 @@ oo::define MainWin {
             chan close $chan
             file attributes $script -permissions 0700
             set terminal [tkpOptions getOption general terminal]
-            set cmd "'${script}'"
+            # set cmd "'${script}'"
+            # Some terminal emulators (e.g. qterminal don't like that %c
+            # is enclosed in single quotes. Removing the single quotes
+            # could be a problem if ${cmd} contains spaces. Normally,
+            # it is something like /tmp/checkupgrades-xxx.sh. So it would
+            # only contain spaces if $tmpdir does. Therefore I have decided
+            # to leave out the single quotes.
+            set cmd ${script}
             set exec exec
             foreach par $terminal {
                 set par [string map [list %t "tkPacman" %c ${cmd}] $par]

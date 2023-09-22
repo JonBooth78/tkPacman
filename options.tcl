@@ -135,12 +135,16 @@ namespace eval tkpOptions {
         dict append optionDict $type $subDict
     }
     set window {}
+    # WHE : terminalList updated 22-10-2017
+    # roxterm does not work very well anymore --> removed
+    # konsole template corrected
+    # qterminal added
     set terminalList [list \
         {xfce4-terminal --disable-server --title=%t --command=%c} \
-        {konsole --nofork --caption %t -e %c} \
+        {konsole --nofork -p tabtitle=%t -e %c} \
         {mate-terminal --disable-factory --title=%t --command=%c} \
-        {roxterm --separate --title=%t --execute %c} \
         {vte --name=%t --command=%c} \
+        {qterminal --execute %c} \
         {xterm -title %t -e %c}]
     set runasrootList [list \
         {%terminal(echo "%p" ; su --command="%p" ; read -p "%close")} \

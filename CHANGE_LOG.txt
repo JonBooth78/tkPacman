@@ -1,3 +1,16 @@
+Version 1.8.0 (2017-10-22)
+  - Corrections to the predefined templates for the "terminal" option:
+      - roxterm was removed because it currently does not work wel
+        with tkPacman
+      - The template for konsole was corrected
+      - A template for qterminal was added.
+      - The help text for this option was corrected accordingly
+  - The runasroot option "sudo" now also works in KDE without having to
+    modify the sudo configuration in an awkward way. The help text was
+    modified accordingly.
+  - The AUR PKGBULD file now uses a Makefile. I thank Alad Wenter for
+    showing me how to set up a Makefile.
+
 Version 1.7.0 (2016-09-12)
   - The option "fontincrement" has been added. It saves the font size
     used by tkPacman.
